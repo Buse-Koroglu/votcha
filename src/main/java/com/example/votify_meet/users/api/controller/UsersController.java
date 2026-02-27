@@ -24,7 +24,7 @@ public class UsersController {
     }
     @GetMapping("/{id}")
     public ResponseEntity<UsersResponseDto> getUser(@PathVariable(name = "id") String id) {
-        return ResponseEntity.ok(usersService.findById(id));
+        return ResponseEntity.ok(usersService.getUser(id));
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<UsersResponseDto> deleteUser(@PathVariable(name = "id") String id) {

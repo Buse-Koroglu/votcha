@@ -15,8 +15,7 @@ public class UsersService {
     private final UsersRepo  usersRepo;
     private final UsersMapper  usersMapper;
 
-    // todo - userMapper will be created
-    // todo - custom exception handler
+
     public UsersService(UsersRepo usersRepo, UsersMapper usersMapper) {
         this.usersRepo = usersRepo;
         this.usersMapper = usersMapper;
@@ -27,7 +26,7 @@ public class UsersService {
         return usersMapper.toResponse(usersRepo.save(user));
     }
     // Will be updated
-    public UsersResponseDto findById(String id) {
+    public UsersResponseDto getUser(String id) {
         return usersMapper.toResponse(usersRepo.findById(id).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", id))));
     }
     public UsersResponseDto deleteUser(String id) {
