@@ -32,4 +32,6 @@ public class Vote {
     @Column(updatable = false)
     private Instant createdAt;
 
+    private Instant updatedAt;
+
 }

@@ -36,6 +36,8 @@ public class Event {
     @Column(updatable = false)
     private Instant createdAt;
 
+    private Instant updatedAt;
+
     // todo - User Relation
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)

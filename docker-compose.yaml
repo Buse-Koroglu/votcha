@@ -1,0 +1,40 @@
+services:
+  app:
+    build: .
+    container_name: votify_meet
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/votify_meet
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    ports:
+      - "8090:8090"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - votify_meet_network
+  db:
+    container_name: votify_meet_db
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: votify_meet
+    volumes:
+      - votify_meet_vol:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    networks:
+      - votify_meet_network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d votify_meet" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+networks:
+  votify_meet_network:
+    driver: bridge
+volumes:
+  votify_meet_vol:

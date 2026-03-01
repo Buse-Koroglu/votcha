@@ -2,13 +2,16 @@ package com.example.votify_meet.options.api.controller;
 
 import com.example.votify_meet.options.api.dto.OptionRequestDto;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;
+import com.example.votify_meet.options.api.dto.UpdateOptionRequestDto;
 import com.example.votify_meet.options.service.OptionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/options")
+@Tag(name = "Options", description = "Option Management APIs")
 public class OptionController {
 
     private final OptionService optionService;
@@ -32,7 +35,10 @@ public class OptionController {
         return ResponseEntity.ok(optionService.deleteOption(id));
     }
 
-    // for update will be added
+    @PatchMapping("/{id}")
+    public ResponseEntity<OptionResponseDto> updateOption(@Valid @RequestBody UpdateOptionRequestDto request, @PathVariable(name = "id") String id){
+        return ResponseEntity.ok(optionService.patchOption(id, request));
+    }
 
 
 }

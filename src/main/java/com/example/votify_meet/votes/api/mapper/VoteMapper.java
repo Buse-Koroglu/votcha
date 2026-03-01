@@ -6,6 +6,8 @@ import com.example.votify_meet.votes.api.dto.VoteResponseDto;
 import com.example.votify_meet.votes.domain.model.Vote;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+
 @Component
 public class VoteMapper {
 
@@ -19,6 +21,9 @@ public class VoteMapper {
 
     public Vote toEntity(VoteRequestDto request, Option option){
         return Vote.builder().option(option).build();
-
+    }
+    public void update(Option option, Vote entity){
+        entity.setOption(option);
+        entity.setUpdatedAt(Instant.now());
     }
 }

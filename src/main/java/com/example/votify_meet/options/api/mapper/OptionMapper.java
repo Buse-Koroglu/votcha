@@ -3,8 +3,11 @@ package com.example.votify_meet.options.api.mapper;
 
 import com.example.votify_meet.options.api.dto.OptionRequestDto;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;
+import com.example.votify_meet.options.api.dto.UpdateOptionRequestDto;
 import com.example.votify_meet.options.domain.model.Option;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
 
 @Component
 public class OptionMapper {
@@ -12,6 +15,7 @@ public class OptionMapper {
         return OptionResponseDto.builder()
                 .id(entity.getId())
                 .content(entity.getContent())
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
     public Option toEntity(OptionRequestDto request){
@@ -23,11 +27,12 @@ public class OptionMapper {
         }
         return value;
     }
-    public void update(OptionRequestDto request,Option entity){
+    public void update(UpdateOptionRequestDto request, Option entity){
         String content = normalize(request.content());
         if(content != null){
             entity.setContent(content);
         }
+        entity.setUpdatedAt(Instant.now());
     }
 
 

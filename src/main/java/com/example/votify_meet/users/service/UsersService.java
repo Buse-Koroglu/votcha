@@ -8,8 +8,6 @@ import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-
 @Service
 public class UsersService {
     private final UsersRepo  usersRepo;

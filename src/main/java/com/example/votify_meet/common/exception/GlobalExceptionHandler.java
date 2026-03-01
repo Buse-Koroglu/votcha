@@ -1,7 +1,9 @@
 package com.example.votify_meet.common.exception;
 
 import com.example.votify_meet.events.domain.exception.EventNotFoundException;
+import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
+import com.example.votify_meet.votes.domain.exception.VoteNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -39,6 +41,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EventNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleEventNotFound(
             EventNotFoundException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+    @ExceptionHandler(OptionNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleOptionNotFound(
+            OptionNotFoundException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+    @ExceptionHandler(VoteNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleVoteNotFound(
+            VoteNotFoundException ex) {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)

@@ -30,18 +30,24 @@ public class VoteService {
     public VoteResponseDto createVote(VoteRequestDto request){
         Option option = optionRepository.findById(request.optionId()).orElseThrow( () -> new OptionNotFoundException(String.format("Option with id %s not found", request.optionId())));
         Vote vote = voteMapper.toEntity(request,option);
-        return voteMapper.toResponse(voteRepository.save(vote));
+        return voteMapper.toResponse(voteRepository.saveAndFlush(vote));
     }
 
     public VoteResponseDto getVote(String id){
-        return voteMapper.toResponse(voteRepository.findById(id).orElseThrow( () -> new VoteNotFoundException(String.format("Option with id %s not found", id))));
+        return voteMapper.toResponse(voteRepository.findById(id).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id))));
     }
 
 
     public VoteResponseDto deleteVote(String id){
-        Vote vote = voteRepository.findById(id).orElseThrow( () -> new VoteNotFoundException(String.format("Option with id %s not found", id)));
+        Vote vote = voteRepository.findById(id).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id)));
         voteRepository.delete(vote);
         return voteMapper.toResponse(vote);
+    }
+    public VoteResponseDto updateVote(String id, VoteRequestDto request){
+        Vote vote = voteRepository.findById(id).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id)));
+        Option option = optionRepository.findById(request.optionId()).orElseThrow(() -> new OptionNotFoundException(String.format("Option with id %s not found", id)));
+        voteMapper.update(option, vote);
+        return voteMapper.toResponse(voteRepository.saveAndFlush(vote));
     }
 
 }

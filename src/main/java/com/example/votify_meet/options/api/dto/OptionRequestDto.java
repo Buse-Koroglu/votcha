@@ -7,7 +7,5 @@ import lombok.Builder;
 @Builder
 public record OptionRequestDto(
     @NotBlank(message = "content is required")
-    @Size(min = 1,max = 200,message = "at least 1 character")
-    String content
-    )
-{}
+    @Size(min = 1,max = 50,message = "at least 1 character")
+    String content) {}

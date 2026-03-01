@@ -2,6 +2,7 @@ package com.example.votify_meet.options.service;
 
 import com.example.votify_meet.options.api.dto.OptionRequestDto;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;
+import com.example.votify_meet.options.api.dto.UpdateOptionRequestDto;
 import com.example.votify_meet.options.api.mapper.OptionMapper;
 import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
 import com.example.votify_meet.options.domain.model.Option;
@@ -32,7 +33,7 @@ public class OptionService {
         return optionMapper.toResponse(option);
     }
 
-    public OptionResponseDto patchOption(String id, OptionRequestDto request){
+    public OptionResponseDto patchOption(String id, UpdateOptionRequestDto request){
         Option option = optionRepository.findById(id).orElseThrow(() -> new OptionNotFoundException(String.format("Option with id %s not found", id)));
         optionMapper.update(request,option);
         return optionMapper.toResponse(optionRepository.save(option));

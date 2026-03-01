@@ -5,6 +5,7 @@ import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.api.mapper.UsersMapper;
 import com.example.votify_meet.users.service.UsersService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
+@Tag(name = "Users", description = "User Management APIs")
 public class UsersController {
     private final UsersService usersService;
     private final UsersMapper usersMapper;
