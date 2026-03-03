@@ -19,8 +19,8 @@ public class VoteController {
     }
 
     @PostMapping("")
-    public ResponseEntity<VoteResponseDto> createVote(@Valid @RequestBody VoteRequestDto request){
-        return ResponseEntity.ok(voteService.createVote(request));
+    public ResponseEntity<VoteResponseDto> createVote(@RequestHeader("X-User-Id") String userId, @Valid @RequestBody VoteRequestDto request){
+        return ResponseEntity.ok(voteService.createVote(request, userId));
     }
     @GetMapping("/{id}")
     public ResponseEntity<VoteResponseDto> getVote(@PathVariable String id){

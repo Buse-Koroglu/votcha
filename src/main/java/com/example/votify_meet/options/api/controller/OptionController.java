@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/options")
+@RequestMapping("/api")
 @Tag(name = "Options", description = "Option Management APIs")
 public class OptionController {
 
@@ -20,22 +20,22 @@ public class OptionController {
         this.optionService = optionService;
     }
 
-    @GetMapping("/{id}")
+    @PostMapping("/events/{id}/options")
+    public ResponseEntity<OptionResponseDto> createOption(@RequestHeader("X-User-Id") String creatorId, @Valid @RequestBody OptionRequestDto request, @PathVariable(name = "id") String eventId){
+        return ResponseEntity.ok(optionService.createOption(request, eventId, creatorId));
+    }
+
+    @GetMapping("/options/{id}")
     public ResponseEntity<OptionResponseDto> getOption(@PathVariable String id){
         return ResponseEntity.ok(optionService.getOption(id));
     }
 
-    @PostMapping("/{id}")
-    public ResponseEntity<OptionResponseDto> createOption(@Valid @RequestBody OptionRequestDto request, @PathVariable(name = "id") String id){
-        return ResponseEntity.ok(optionService.createOption(request, id));
-    }
-
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/options/{id}")
     public ResponseEntity<OptionResponseDto> deleteOption(@PathVariable String id){
         return ResponseEntity.ok(optionService.deleteOption(id));
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/options/{id}")
     public ResponseEntity<OptionResponseDto> updateOption(@Valid @RequestBody UpdateOptionRequestDto request, @PathVariable(name = "id") String id){
         return ResponseEntity.ok(optionService.patchOption(id, request));
     }

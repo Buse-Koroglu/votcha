@@ -5,14 +5,26 @@ import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.api.dto.UpdateEventRequestDto;
 import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.events.domain.model.Status;
+import com.example.votify_meet.options.api.dto.OptionResponseDto;
+import com.example.votify_meet.options.api.mapper.OptionMapper;
+import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.users.domain.model.Users;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class EventMapper {
-    public EventResponseDto toResponse(Event entity) {
+    private final OptionMapper optionMapper;
+
+    public EventResponseDto toResponse(Event entity, List<Option> options) {
+        List<OptionResponseDto> optionDtos = options.stream()
+                .map(optionMapper::toResponse)
+                .toList();
+
         return EventResponseDto.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
@@ -21,7 +33,9 @@ public class EventMapper {
                 .type(entity.getType())
                 .status(entity.getStatus())
                 .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 .creatorId(entity.getCreator().getId())
+                .options(optionDtos)
                 .build();
     }
 

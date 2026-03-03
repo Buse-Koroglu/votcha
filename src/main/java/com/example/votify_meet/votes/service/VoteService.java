@@ -3,6 +3,9 @@ package com.example.votify_meet.votes.service;
 import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
 import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.options.domain.repository.OptionRepository;
+import com.example.votify_meet.users.domain.exception.UserNotFoundException;
+import com.example.votify_meet.users.domain.model.Users;
+import com.example.votify_meet.users.domain.repository.UsersRepo;
 import com.example.votify_meet.votes.api.dto.VoteRequestDto;
 import com.example.votify_meet.votes.api.dto.VoteResponseDto;
 import com.example.votify_meet.votes.api.mapper.VoteMapper;
@@ -18,18 +21,22 @@ public class VoteService {
     private final VoteRepository voteRepository;
     private final VoteMapper voteMapper;
     private final OptionRepository optionRepository;
+    private UsersRepo  usersRepo;
 
 
-    public VoteService(VoteRepository voteRepository, VoteMapper voteMapper, OptionRepository optionRepository) {
+    public VoteService(VoteRepository voteRepository, VoteMapper voteMapper,
+                       OptionRepository optionRepository, UsersRepo usersRepo) {
         this.voteRepository = voteRepository;
         this.voteMapper = voteMapper;
         this.optionRepository = optionRepository;
+        this.usersRepo = usersRepo;
     }
 
     @Transactional
-    public VoteResponseDto createVote(VoteRequestDto request){
+    public VoteResponseDto createVote(VoteRequestDto request, String userId){
         Option option = optionRepository.findById(request.optionId()).orElseThrow( () -> new OptionNotFoundException(String.format("Option with id %s not found", request.optionId())));
-        Vote vote = voteMapper.toEntity(request,option);
+        Users voter = usersRepo.findById(userId).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", userId)));
+        Vote vote = voteMapper.toEntity(option, voter);
         return voteMapper.toResponse(voteRepository.saveAndFlush(vote));
     }
 

@@ -2,7 +2,10 @@ package com.example.votify_meet.users.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UuidGenerator;
+
+import java.time.Instant;
 
 
 @Builder
@@ -22,6 +25,11 @@ public class Users {
     private String email;
     private String password;
 
-    // todo - Event Relation
+    @CreationTimestamp
+    @Column(updatable = false)
+    private Instant createdAt;
+
+    private Instant updatedAt;
+
 
 }

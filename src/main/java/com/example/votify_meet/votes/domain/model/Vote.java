@@ -2,6 +2,7 @@ package com.example.votify_meet.votes.domain.model;
 
 
 import com.example.votify_meet.options.domain.model.Option;
+import com.example.votify_meet.users.domain.model.Users;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -17,7 +18,11 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "vote")
+@Table(name = "vote",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"option_id", "voter_id"})
+    }
+) // Users cannot vote more than once
 public class Vote {
     @Id
     @UuidGenerator
@@ -27,6 +32,11 @@ public class Vote {
     @JoinColumn(name = "option_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Option option;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voter_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Users voter;
 
     @CreationTimestamp
     @Column(updatable = false)

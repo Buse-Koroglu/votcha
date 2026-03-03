@@ -8,6 +8,7 @@ import java.time.Instant;
 public record OptionResponseDto(
     String id,
     String content,
-    Instant createdAt
+    Instant createdAt,
+    Instant updatedAt
 )
 {}

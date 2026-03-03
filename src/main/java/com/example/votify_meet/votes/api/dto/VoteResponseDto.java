@@ -8,6 +8,7 @@ import java.time.Instant;
 public record VoteResponseDto (
     String id,
     String optionId,
-    Instant createdAt
+    Instant createdAt,
+    Instant updatedAt
 ) {
 }

@@ -2,6 +2,7 @@ package com.example.votify_meet.common.exception;
 
 import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
+import com.example.votify_meet.options.domain.exception.UnauthorizedException;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.votes.domain.exception.VoteNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -60,6 +61,14 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthorizedException(
+            UnauthorizedException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
                 .body(Map.of("error", ex.getMessage()));
     }
 }

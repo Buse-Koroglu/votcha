@@ -6,6 +6,8 @@ import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.domain.model.Users;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+
 @Component
 public class UsersMapper {
     public UsersResponseDto toResponse(Users entity) {
@@ -13,7 +15,10 @@ public class UsersMapper {
                 .id(entity.getId())
                 .firstName(entity.getFirstName())
                 .lastName(entity.getLastName())
-                .email(entity.getEmail()).build();
+                .email(entity.getEmail())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .build();
     }
 
     public Users toEntity(UsersRequestDto request) {
@@ -50,5 +55,6 @@ public class UsersMapper {
         if(password != null) {
             entity.setPassword(password);
         }
+        entity.setUpdatedAt(Instant.now());
     }
 }
