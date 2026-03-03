@@ -1,7 +1,10 @@
 package com.example.votify_meet.options.domain.model;
+import com.example.votify_meet.events.domain.model.Event;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -27,4 +30,10 @@ public class Option {
     private Instant createdAt;
 
     private Instant updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Event event;
+
 }

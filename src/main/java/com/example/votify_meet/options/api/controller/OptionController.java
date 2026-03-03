@@ -25,9 +25,9 @@ public class OptionController {
         return ResponseEntity.ok(optionService.getOption(id));
     }
 
-    @PostMapping("")
-    public ResponseEntity<OptionResponseDto> createOption(@Valid @RequestBody OptionRequestDto request){
-        return ResponseEntity.ok(optionService.createOption(request));
+    @PostMapping("/{id}")
+    public ResponseEntity<OptionResponseDto> createOption(@Valid @RequestBody OptionRequestDto request, @PathVariable(name = "id") String id){
+        return ResponseEntity.ok(optionService.createOption(request, id));
     }
 
     @DeleteMapping("/{id}")

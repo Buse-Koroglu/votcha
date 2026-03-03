@@ -38,13 +38,10 @@ public class Event {
 
     private Instant updatedAt;
 
-    // todo - User Relation
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Users creator;
-
-    // todo - Option Relation
-
 
 }

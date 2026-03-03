@@ -1,5 +1,8 @@
 package com.example.votify_meet.options.service;
 
+import com.example.votify_meet.events.domain.exception.EventNotFoundException;
+import com.example.votify_meet.events.domain.model.Event;
+import com.example.votify_meet.events.domain.repository.EventsRepo;
 import com.example.votify_meet.options.api.dto.OptionRequestDto;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;
 import com.example.votify_meet.options.api.dto.UpdateOptionRequestDto;
@@ -13,18 +16,21 @@ import org.springframework.stereotype.Service;
 public class OptionService {
     private final OptionRepository optionRepository;
     private final OptionMapper optionMapper;
+    private final EventsRepo eventsRepo;
 
-    public OptionService(OptionRepository repository, OptionMapper mapper) {
+    public OptionService(OptionRepository repository, OptionMapper mapper, EventsRepo eventsRepo) {
         this.optionRepository = repository;
         this.optionMapper = mapper;
+        this.eventsRepo = eventsRepo;
     }
 
     public OptionResponseDto getOption(String id){
         return optionMapper.toResponse(optionRepository.findById(id).orElseThrow( () -> new OptionNotFoundException(String.format("Option with id %s not found", id))));
     }
 
-    public OptionResponseDto createOption(OptionRequestDto request){
-        return optionMapper.toResponse(optionRepository.saveAndFlush(optionMapper.toEntity(request)));
+    public OptionResponseDto createOption(OptionRequestDto request, String eventId){
+        Event event = eventsRepo.findById(eventId).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+        return optionMapper.toResponse(optionRepository.saveAndFlush(optionMapper.toEntity(request, event)));
     }
 
     public OptionResponseDto deleteOption(String id){

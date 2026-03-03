@@ -1,6 +1,7 @@
 package com.example.votify_meet.options.api.mapper;
 
 
+import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.options.api.dto.OptionRequestDto;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;
 import com.example.votify_meet.options.api.dto.UpdateOptionRequestDto;
@@ -18,8 +19,8 @@ public class OptionMapper {
                 .createdAt(entity.getCreatedAt())
                 .build();
     }
-    public Option toEntity(OptionRequestDto request){
-        return Option.builder().content(request.content()).build();
+    public Option toEntity(OptionRequestDto request, Event  event){
+        return Option.builder().content(request.content()).event(event).build();
     }
     private String normalize(String value){
         if(value != null && value.trim().isEmpty()){
