@@ -9,6 +9,7 @@ import com.example.votify_meet.users.domain.repository.UsersRepo;
 import com.example.votify_meet.votes.api.dto.VoteRequestDto;
 import com.example.votify_meet.votes.api.dto.VoteResponseDto;
 import com.example.votify_meet.votes.api.mapper.VoteMapper;
+import com.example.votify_meet.votes.domain.exception.AlreadyVotedException;
 import com.example.votify_meet.votes.domain.exception.VoteNotFoundException;
 import com.example.votify_meet.votes.domain.model.Vote;
 import com.example.votify_meet.votes.domain.repository.VoteRepository;
@@ -35,6 +36,10 @@ public class VoteService {
     @Transactional
     public VoteResponseDto createVote(VoteRequestDto request, String userId){
         Option option = optionRepository.findById(request.optionId()).orElseThrow( () -> new OptionNotFoundException(String.format("Option with id %s not found", request.optionId())));
+        boolean alreadyVoted = voteRepository.existsByVoterIdAndOption_EventId(userId,option.getEvent().getId());
+        if(alreadyVoted){
+            throw new AlreadyVotedException("User can not vote more than one time.");
+        }
         Users voter = usersRepo.findById(userId).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", userId)));
         Vote vote = voteMapper.toEntity(option, voter);
         return voteMapper.toResponse(voteRepository.saveAndFlush(vote));

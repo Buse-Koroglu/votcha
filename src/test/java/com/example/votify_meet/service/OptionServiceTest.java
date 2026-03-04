@@ -1,5 +1,6 @@
-package com.example.votify_meet;
+package com.example.votify_meet.service;
 
+import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.events.domain.repository.EventsRepo;
 import com.example.votify_meet.options.api.dto.OptionRequestDto;
@@ -77,5 +78,20 @@ public class OptionServiceTest {
         assertThatThrownBy(() -> optionService.createOption(requestDto, eventId, hackerId))
                 .isInstanceOf(UnauthorizedException.class)
                 .hasMessage("Only the owner can add style to the event.");
+    }
+
+    @Test
+    @DisplayName("GIVEN non-existent eventId WHEN create option THEN throw EventNotFoundException")
+    void givenInvalidEventId_whenCreateOption_thenThrowEventNotFound(){
+        // GIVEN
+        String invalidEventId = "nothing-123";
+        String creatorId = "user-123";
+        OptionRequestDto request = new OptionRequestDto("First Option");
+
+        given(eventsRepo.findById(invalidEventId)).willReturn(Optional.empty());
+        // THEN & WHEN
+        assertThatThrownBy(() -> optionService.createOption(request,invalidEventId,creatorId))
+                .isInstanceOf(EventNotFoundException.class)
+                .hasMessageContaining(invalidEventId);
     }
 }
