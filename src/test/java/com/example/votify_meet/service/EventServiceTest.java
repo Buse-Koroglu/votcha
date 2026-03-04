@@ -7,6 +7,7 @@ import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.events.domain.repository.EventsRepo;
 import com.example.votify_meet.events.service.EventService;
+import com.example.votify_meet.options.domain.repository.OptionRepository;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
@@ -31,6 +32,7 @@ public class EventServiceTest {
     @Mock private EventsRepo eventsRepo;
     @Mock private UsersRepo usersRepo;
     @Mock private EventMapper eventMapper;
+    @Mock private OptionRepository optionRepo;
     @InjectMocks private EventService eventService;
 
     @Test
@@ -80,6 +82,7 @@ public class EventServiceTest {
         String invalidEventId = "ghost-event";
 
         // Act
+        given(optionRepo.findAllByEventId(invalidEventId)).willReturn(Collections.emptyList());
         given(eventsRepo.findById(invalidEventId)).willReturn(Optional.empty());
 
         // Assert:
