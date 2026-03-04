@@ -5,6 +5,8 @@ import com.example.votify_meet.votes.api.dto.VoteResponseDto;
 import com.example.votify_meet.votes.service.VoteService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +22,7 @@ public class VoteController {
 
     @PostMapping("")
     public ResponseEntity<VoteResponseDto> createVote(@RequestHeader("X-User-Id") String userId, @Valid @RequestBody VoteRequestDto request){
-        return ResponseEntity.ok(voteService.createVote(request, userId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(voteService.createVote(request, userId));
     }
     @GetMapping("/{id}")
     public ResponseEntity<VoteResponseDto> getVote(@PathVariable String id){

@@ -1,6 +1,5 @@
-package com.example.votify_meet;
+package com.example.votify_meet.controller;
 
-import com.example.votify_meet.events.service.EventService;
 import com.example.votify_meet.options.api.controller.OptionController;
 import com.example.votify_meet.options.api.dto.OptionRequestDto;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;
@@ -8,10 +7,6 @@ import com.example.votify_meet.options.api.dto.UpdateOptionRequestDto;
 import com.example.votify_meet.options.api.mapper.OptionMapper;
 import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
 import com.example.votify_meet.options.service.OptionService;
-import com.example.votify_meet.users.api.dto.UsersRequestDto;
-import com.example.votify_meet.votes.api.dto.VoteRequestDto;
-import com.example.votify_meet.votes.api.dto.VoteResponseDto;
-import com.example.votify_meet.votes.domain.exception.VoteNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

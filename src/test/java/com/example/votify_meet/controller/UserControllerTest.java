@@ -1,4 +1,4 @@
-package com.example.votify_meet;
+package com.example.votify_meet.controller;
 
 import com.example.votify_meet.users.api.controller.UsersController;
 import com.example.votify_meet.users.api.dto.UpdateUsersRequestDto;

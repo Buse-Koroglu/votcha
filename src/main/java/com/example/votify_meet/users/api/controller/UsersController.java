@@ -8,6 +8,8 @@ import com.example.votify_meet.users.service.UsersService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +24,7 @@ public class UsersController {
 
     @PostMapping("")
     public ResponseEntity<UsersResponseDto> createUser(@Valid @RequestBody UsersRequestDto request) {
-        return ResponseEntity.ok(usersService.createUser(usersMapper.toEntity(request)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(usersService.createUser(usersMapper.toEntity(request)));
     }
     @GetMapping("/{id}")
     public ResponseEntity<UsersResponseDto> getUser(@PathVariable(name = "id") String id) {

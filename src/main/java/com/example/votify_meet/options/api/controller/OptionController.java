@@ -6,6 +6,8 @@ import com.example.votify_meet.options.api.dto.UpdateOptionRequestDto;
 import com.example.votify_meet.options.service.OptionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +24,7 @@ public class OptionController {
 
     @PostMapping("/events/{id}/options")
     public ResponseEntity<OptionResponseDto> createOption(@RequestHeader("X-User-Id") String creatorId, @Valid @RequestBody OptionRequestDto request, @PathVariable(name = "id") String eventId){
-        return ResponseEntity.ok(optionService.createOption(request, eventId, creatorId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(optionService.createOption(request, eventId, creatorId));
     }
 
     @GetMapping("/options/{id}")

@@ -6,6 +6,8 @@ import com.example.votify_meet.events.api.dto.UpdateEventRequestDto;
 import com.example.votify_meet.events.service.EventService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +27,7 @@ public class EventController {
 
     @PostMapping("/events")
     public ResponseEntity<EventResponseDto> createEvent(@RequestHeader("X-User-Id") String userId, @Valid @RequestBody EventRequestDto eventRequestDto) {
-        return ResponseEntity.ok(eventService.createEvent(eventRequestDto, userId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(eventService.createEvent(eventRequestDto, userId));
     }
 
     @GetMapping("/users/{userId}/events")
