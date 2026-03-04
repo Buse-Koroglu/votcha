@@ -50,7 +50,7 @@ public class UserControllerTest {
     @DisplayName("Successful User Creation - 201 Created should returned")
     void createUser_returns201_whenValidRequest() throws Exception {
         // Arrange
-        UsersRequestDto request = new UsersRequestDto(FIRST_NAME, LAST_NAME, EMAIL, " ");
+        UsersRequestDto request = new UsersRequestDto(FIRST_NAME, LAST_NAME, EMAIL, "145*9o");
 
         // Act
         when(usersService.createUser(any(UsersRequestDto.class))).thenReturn(standardResponse);
