@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Users", description = "User Management APIs")
 public class UsersController {
     private final UsersService usersService;
-    private final UsersMapper usersMapper;
 
     @PostMapping("")
-    public ResponseEntity<UsersResponseDto> createUser(@Valid @RequestBody UsersRequestDto request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(usersService.createUser(usersMapper.toEntity(request)));
+    public ResponseEntity<UsersResponseDto> createUser(@Valid @RequestBody UsersRequestDto request) {=
+        return ResponseEntity.ok(usersService.createUser(request));
+
     }
     @GetMapping("/{id}")
     public ResponseEntity<UsersResponseDto> getUser(@PathVariable(name = "id") String id) {

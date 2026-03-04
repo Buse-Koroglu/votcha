@@ -33,8 +33,7 @@ public class EventServiceTest {
     @Mock private OptionRepository optionRepo;
     @Mock private UsersRepo usersRepo;
     @Mock private EventMapper eventMapper;
-    @InjectMocks
-    private EventService eventService;
+    @InjectMocks private EventService eventService;
 
     @Test
     @DisplayName("GIVEN valid request WHEN create event THEN return event with empty option list")

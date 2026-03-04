@@ -1,6 +1,7 @@
 package com.example.votify_meet.users.service;
 
 import com.example.votify_meet.users.api.dto.UpdateUsersRequestDto;
+import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.api.mapper.UsersMapper;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
@@ -20,8 +21,8 @@ public class UsersService {
     }
 
     // Will be updated
-    public UsersResponseDto createUser(Users user) {
-        return usersMapper.toResponse(usersRepo.save(user));
+    public UsersResponseDto createUser(UsersRequestDto request) {
+        return usersMapper.toResponse(usersRepo.save(usersMapper.toEntity(request)));
     }
     // Will be updated
     public UsersResponseDto getUser(String id) {

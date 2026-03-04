@@ -29,6 +29,8 @@ public class UsersMapper {
                 .password(request.password())
                 .build();
     }
+
+
     private String normalize(String value){
         if(value != null && value.trim().isEmpty()){
             return null;
