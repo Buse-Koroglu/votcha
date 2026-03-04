@@ -32,7 +32,7 @@ public class OptionService {
     public OptionResponseDto createOption(OptionRequestDto request, String eventId, String creatorId){
         Event event = eventsRepo.findById(eventId).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
         if(!event.getCreator().getId().equals(creatorId)){
-            throw new UnauthorizedException("Only the owner can add style to the event.");
+            throw new UnauthorizedException("Only the owner can add option to the event.");
         }
         return optionMapper.toResponse(optionRepository.saveAndFlush(optionMapper.toEntity(request, event)));
     }

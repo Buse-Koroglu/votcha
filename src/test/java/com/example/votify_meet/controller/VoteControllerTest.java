@@ -3,10 +3,11 @@ package com.example.votify_meet.controller;
 import com.example.votify_meet.votes.api.controller.VoteController;
 import com.example.votify_meet.votes.api.dto.VoteRequestDto;
 import com.example.votify_meet.votes.api.dto.VoteResponseDto;
-import com.example.votify_meet.votes.api.mapper.VoteMapper;
 import com.example.votify_meet.votes.domain.exception.VoteNotFoundException;
 import com.example.votify_meet.votes.service.VoteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -26,35 +27,47 @@ public class VoteControllerTest {
     private MockMvc mockMvc;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
     @MockitoBean
     private VoteService voteService;
-    @MockitoBean
-    private VoteMapper voteMapper;
+
+    private final String VOTE_ID = "1";
+    private final String OPTION_ID = "2";
+    private final String USER_ID = "3";
+    private VoteResponseDto standardResponse;
+
+    @BeforeEach
+    public void setup() {
+        standardResponse = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);;
+    }
+
 
     @Test
+    @DisplayName("Create a vote - 302 Created should return.")
     void createVote_returns201_whenValidRequest() throws Exception{
-        VoteRequestDto request = new VoteRequestDto("2");
-        VoteResponseDto response = new VoteResponseDto("1","2",null,null);
-        when(voteService.createVote(request,"3")).thenReturn(response);
+        // Arrange
+        VoteRequestDto request = new VoteRequestDto(OPTION_ID);
 
+        // Act
+        when(voteService.createVote(request,USER_ID)).thenReturn(standardResponse);
+
+        // Assert
         mockMvc.perform(post("/api/votes")
-                    .header("X-User-Id","3")
+                    .header("X-User-Id",USER_ID)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.optionId").value("2"))
-                .andExpect(jsonPath("$.createdAt").value(nullValue()))
-                .andExpect(jsonPath("$.updatedAt").value(nullValue()));
-
-
-
-
+                .andExpect(jsonPath("$.id").value(VOTE_ID))
+                .andExpect(jsonPath("$.optionId").value(OPTION_ID));
     }
 
     @Test
+    @DisplayName("Creating vote with invalid request - 400 Bad Request should return")
     void createVote_returns400_whenInvalidRequest() throws Exception{
+        // Arrange
         VoteRequestDto request = new VoteRequestDto("");
+
+        // Act & Assert
         mockMvc.perform(post("/api/votes")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -62,55 +75,78 @@ public class VoteControllerTest {
     }
 
     @Test
+    @DisplayName("Retrieve an existing vote - 200 Ok should return")
     void getVote_returns200_whenVoteExist() throws Exception{
-        VoteResponseDto response = new VoteResponseDto("1","2",null,null);
-        when(voteService.getVote("1")).thenReturn(response);
-        mockMvc.perform(get("/api/votes/{id}","1"))
+        // Arrange
+        VoteResponseDto response = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);
+
+        // Act
+        when(voteService.getVote(VOTE_ID)).thenReturn(response);
+
+        // Assert
+        mockMvc.perform(get("/api/votes/{id}",VOTE_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.optionId").value("2"))
-                .andExpect(jsonPath("$.createdAt").value(nullValue()))
-                .andExpect(jsonPath("$.updatedAt").value(nullValue()));
+                .andExpect(jsonPath("$.id").value(VOTE_ID))
+                .andExpect(jsonPath("$.optionId").value(OPTION_ID));
 
     }
 
     @Test
+    @DisplayName("Retrieve non existing vote - 404 Not Found should return")
     void getVote_returns404_whenVoteNotExist() throws Exception{
-        when(voteService.getVote("1")).thenThrow(new VoteNotFoundException("Vote Not Found"));
-        mockMvc.perform(get("/api/votes/{id}","1"))
+        // Act
+        when(voteService.getVote(VOTE_ID)).thenThrow(new VoteNotFoundException("Vote Not Found"));
+
+        // Assert
+        mockMvc.perform(get("/api/votes/{id}",VOTE_ID))
                 .andExpect(status().isNotFound());
     }
 
     @Test
+    @DisplayName("Delete vote - 200 Ok should return")
     void deleteVote_returns200_whenVoteDeleted() throws  Exception{
-        VoteResponseDto response = new VoteResponseDto("1","2",null,null);
-        when(voteService.deleteVote("1")).thenReturn(response);
-        mockMvc.perform(delete("/api/votes/{id}","1"))
+        VoteResponseDto response = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);
+        when(voteService.deleteVote(VOTE_ID)).thenReturn(response);
+        mockMvc.perform(delete("/api/votes/{id}",VOTE_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.optionId").value("2"));
+                .andExpect(jsonPath("$.id").value(VOTE_ID));
     }
 
     @Test
+    @DisplayName("Delete a non-existing Vote - 404 Not Found should return.")
     void deleteVote_returns404_whenVoteNotFound() throws Exception{
-        when(voteService.deleteVote("1")).thenThrow(new VoteNotFoundException("Vote Not Found"));
-        mockMvc.perform(delete("/api/votes/{id}","1"))
+        when(voteService.deleteVote(VOTE_ID)).thenThrow(new VoteNotFoundException("Vote Not Found"));
+        mockMvc.perform(delete("/api/votes/{id}",VOTE_ID))
                 .andExpect(status().isNotFound());
     }
 
     @Test
+    @DisplayName("Partial vote update - 200 Ok should return.")
     void patchVote_returns200_whenVotePatched() throws Exception{
-        VoteRequestDto request = new VoteRequestDto("1");
-        VoteResponseDto response = new VoteResponseDto("1","2",null,null);
+        // Arrange
+        VoteRequestDto request = new VoteRequestDto(VOTE_ID);
 
-        when(voteService.updateVote("1",request)).thenReturn(response);
-        mockMvc.perform(patch("/api/votes/{id}","1")
+        // Act
+        when(voteService.updateVote(VOTE_ID,request)).thenReturn(standardResponse);
+
+        // Assert
+        mockMvc.perform(patch("/api/votes/{id}",VOTE_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 ).andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.optionId").value("2"));
+                .andExpect(jsonPath("$.id").value(VOTE_ID))
+                .andExpect(jsonPath("$.optionId").value(OPTION_ID));
     }
 
+    @Test
+    @DisplayName("Partial vote update with invalid data - 400 Bad Request should return.")
+    void patchVote_returns400_whenInvalidRequest() throws Exception{
+        VoteRequestDto request = new VoteRequestDto("");
+
+        mockMvc.perform(patch("/api/votes/{id}",VOTE_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
 
 }

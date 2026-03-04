@@ -7,7 +7,6 @@ import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.events.domain.repository.EventsRepo;
 import com.example.votify_meet.events.service.EventService;
-import com.example.votify_meet.options.domain.repository.OptionRepository;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
@@ -30,7 +29,6 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 public class EventServiceTest {
     @Mock private EventsRepo eventsRepo;
-    @Mock private OptionRepository optionRepo;
     @Mock private UsersRepo usersRepo;
     @Mock private EventMapper eventMapper;
     @InjectMocks private EventService eventService;
@@ -38,7 +36,7 @@ public class EventServiceTest {
     @Test
     @DisplayName("GIVEN valid request WHEN create event THEN return event with empty option list")
     void givenValidRequest_whenCreateEvent_thenReturnEventWithEmptyOptions(){
-        // GIVEN
+        // Arrange
         String userId = "u-123";
         EventRequestDto request = new EventRequestDto("Meet", "Desc", null, null);
         Users user = Users.builder().id(userId).build();
@@ -52,10 +50,10 @@ public class EventServiceTest {
 
         given(eventMapper.toResponse(eq(savedEvent), eq(Collections.emptyList()))).willReturn(expectedResponse);
 
-        // WHEN
+        // Act
         EventResponseDto actualResponse = eventService.createEvent(request, userId);
 
-        // THEN
+        // Assert
         assertThat(actualResponse.options()).isEmpty();
         assertThat(actualResponse.title()).isEqualTo("Meet");
     }
@@ -63,13 +61,13 @@ public class EventServiceTest {
     @Test
     @DisplayName("GIVEN non-existent user WHEN create event THEN throw UserNotFoundException")
     void givenInvalidUser_whenCreateEvent_thenThrowException() {
-        // GIVEN
+        // Arrange
         String invalidUserId = "ghost-user";
         EventRequestDto request = new EventRequestDto("Parti", "Açıklama", null, null);
 
         given(usersRepo.findById(invalidUserId)).willReturn(Optional.empty());
 
-        // WHEN & THEN: Non-existent users cannot perform transactions!
+        // Act & Assert
         assertThatThrownBy(() -> eventService.createEvent(request, invalidUserId))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessageContaining(invalidUserId);
@@ -78,11 +76,13 @@ public class EventServiceTest {
     @Test
     @DisplayName("GIVEN non-existent eventId WHEN get event THEN trow EventNotFoundException")
     void givenInvalidEventId_whenGetEvent_thenThrowException(){
-        // GIVEN
+        // Arrange
         String invalidEventId = "ghost-event";
+
+        // Act
         given(eventsRepo.findById(invalidEventId)).willReturn(Optional.empty());
 
-        // WHEN & THEN:
+        // Assert:
         assertThatThrownBy(() -> eventService.getEvent(invalidEventId))
                 .isInstanceOf(EventNotFoundException.class)
                 .hasMessageContaining(invalidEventId);
@@ -91,23 +91,24 @@ public class EventServiceTest {
     @Test
     @DisplayName("GIVEN valid eventId WHEN delete event THEN return event with empty option list")
     void givenValidEventId_whenDeleteEvent_thenReturnEventWithEmptyOptions(){
-        // GIVEN
+        // Arrange
         String eventId = "e-123";
         String userId = "u-123";
         Users user = Users.builder().id(userId).build();
-        Event event = Event.builder().id(eventId).title("Community Event").creator(user).build();
+        Event event = Event.builder().id(eventId).title("Meet").creator(user).build();
 
-        EventResponseDto expectedResponse = new EventResponseDto("e-123","Community Event",null,null,null,null,null,null,userId,Collections.emptyList());
+        EventResponseDto expectedResponse = new EventResponseDto("e-123","Meet",null,null,null,null,null,null,userId,Collections.emptyList());
 
+        // Act
         given(eventsRepo.findById(eventId)).willReturn(Optional.of(event));
         given(eventMapper.toResponse(eq(event),eq(Collections.emptyList()))).willReturn(expectedResponse);
 
-        // WHEN
+        // Act
         EventResponseDto actualResponse = eventService.deleteEvent(eventId);
 
-        // THEN
-        assertThat(actualResponse.options().isEmpty());
-        assertThat(actualResponse.title()).isEqualTo("Community Event");
+        // Assert
+        assertThat(actualResponse.options().isEmpty()).isTrue();
+        assertThat(actualResponse.title()).isEqualTo("Meet");
 
         verify(eventsRepo).deleteById(eventId);
     }

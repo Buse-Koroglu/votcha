@@ -34,7 +34,7 @@ public class VoteController {
         return ResponseEntity.ok(voteService.deleteVote(id));
     }
     @PatchMapping("/{id}")
-    public ResponseEntity<VoteResponseDto> updateVote(@PathVariable(name = "id") String id, @RequestBody VoteRequestDto request){
+    public ResponseEntity<VoteResponseDto> updateVote(@PathVariable(name = "id") String id,@Valid @RequestBody VoteRequestDto request){
         return ResponseEntity.ok(voteService.updateVote(id, request));
     }
 }

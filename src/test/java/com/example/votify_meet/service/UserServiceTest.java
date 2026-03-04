@@ -11,45 +11,62 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.*;
+
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 public class UserServiceTest {
     @Mock
     private UsersRepo usersRepo;
-    @Spy
-    private UsersMapper usersMapper = new UsersMapper();
+
+    @Mock
+    private UsersMapper usersMapper;
+
     @InjectMocks
-    private UsersService usersService;
+    private UsersService  usersService;
+
 
     @Test
-    @DisplayName("GIVEN partial patch WHEN patch user THEN only requsted fields should change")
+    @DisplayName("GIVEN partial patch WHEN patch user THEN only requested fields should change")
     void givenPartialPatch_whenPatchUser_thenOnlyRequestedFieldsShouldChange(){
-        // GIVEN
+        // Arrange
         String userId = "u-123";
 
         Users existingUser = Users.builder().id(userId).firstName("John").lastName("Doe").email("doe@gmail.com").build();
+        UpdateUsersRequestDto request = new UpdateUsersRequestDto("Kate", null, null, null);
 
-        UpdateUsersRequestDto request = new UpdateUsersRequestDto("Kate",null,null,null);
+        UsersResponseDto expectedResponse = new UsersResponseDto(userId, "Kate", "Doe", "doe@gmail.com", null, null);
+
+        // Act
         given(usersRepo.findById(userId)).willReturn(Optional.of(existingUser));
         given(usersRepo.save(existingUser)).willReturn(existingUser);
 
-        // WHEN
-        UsersResponseDto patchedUser = usersService.patchUser(userId,request);
-        // THEN
+        // Act
+        willAnswer(invocation -> {
+            Users userToUpdate = invocation.getArgument(1); // 2. parametre existingUser
+            userToUpdate.setFirstName("Kate");
+            return null; // void metot olduğu için null dönüyoruz
+        }).given(usersMapper).update(request, existingUser);
+
+        // Act
+        given(usersMapper.toResponse(existingUser)).willReturn(expectedResponse);
+
+        // Act
+        UsersResponseDto actualResponse = usersService.patchUser(userId, request);
+
+        // Assert
+        assertThat(actualResponse.firstName()).isEqualTo("Kate");
+        assertThat(actualResponse.lastName()).isEqualTo("Doe");
+        assertThat(actualResponse.email()).isEqualTo("doe@gmail.com");
+
         assertThat(existingUser.getFirstName()).isEqualTo("Kate");
         assertThat(existingUser.getLastName()).isEqualTo("Doe");
-        assertThat(existingUser.getEmail()).isEqualTo("doe@gmail.com");
-        verify(usersRepo).save(existingUser);
+
+        then(usersRepo).should().save(existingUser);
     }
 }

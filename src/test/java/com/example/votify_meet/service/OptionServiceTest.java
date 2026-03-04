@@ -17,19 +17,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 public class OptionServiceTest {
     @Mock private OptionRepository optionRepository;
     @Mock private EventsRepo eventsRepo;
@@ -39,7 +36,7 @@ public class OptionServiceTest {
     @Test
     @DisplayName("GIVEN event owner WHEN create option THEN return success option response")
     void givenEventOwner_whenCreateOption_thenReturnSuccess(){
-        // GIVEN
+        // Arrange
         String eventId = "event-123";
         String ownerId = "user-123";
         Users owner = Users.builder().id(ownerId).build();
@@ -49,22 +46,26 @@ public class OptionServiceTest {
         Option mockOption = Option.builder().id("opt-1").content("Option A").event(event).build();
         OptionResponseDto expectedResponse = new OptionResponseDto("opt-1","Option A", null, null);
 
-        given(eventsRepo.findById(eventId)).willReturn(Optional.ofNullable(event));
+        // Act
+        given(eventsRepo.findById(eventId)).willReturn(Optional.of(event));
         given(optionMapper.toEntity(requestDto, event)).willReturn(mockOption);
         given(optionRepository.saveAndFlush(mockOption)).willReturn(mockOption);
         given(optionMapper.toResponse(mockOption)).willReturn(expectedResponse);
 
-        // WHEN
+        // Act
         OptionResponseDto actualResponse = optionService.createOption(requestDto, eventId, ownerId);
 
-        // THEN
+        // Assert
         assertThat(actualResponse).isEqualTo(expectedResponse);
+
+        then(optionRepository).should().saveAndFlush(mockOption);
 
     }
 
     @Test
     @DisplayName("GIVEN unauthorized user WHEN create option THEN throw UnauthorizedException")
     void givenUnauthorizedUser_whenCreateOption_thenThrowException(){
+        // Arrange
         String eventId = "event-123";
         String ownerId = "user-123";
         String hackerId = "hacker-234";
@@ -75,23 +76,28 @@ public class OptionServiceTest {
         OptionRequestDto requestDto = new OptionRequestDto("Option A");
         given(eventsRepo.findById(eventId)).willReturn(Optional.ofNullable(event));
 
+        // Act & Assert
         assertThatThrownBy(() -> optionService.createOption(requestDto, eventId, hackerId))
                 .isInstanceOf(UnauthorizedException.class)
-                .hasMessage("Only the owner can add style to the event.");
+                .hasMessage("Only the owner can add option to the event.");
+        then(optionRepository).shouldHaveNoInteractions();
     }
 
     @Test
     @DisplayName("GIVEN non-existent eventId WHEN create option THEN throw EventNotFoundException")
     void givenInvalidEventId_whenCreateOption_thenThrowEventNotFound(){
-        // GIVEN
+        // Arrange
         String invalidEventId = "nothing-123";
         String creatorId = "user-123";
         OptionRequestDto request = new OptionRequestDto("First Option");
 
         given(eventsRepo.findById(invalidEventId)).willReturn(Optional.empty());
-        // THEN & WHEN
+
+        // Act & Assert
         assertThatThrownBy(() -> optionService.createOption(request,invalidEventId,creatorId))
                 .isInstanceOf(EventNotFoundException.class)
                 .hasMessageContaining(invalidEventId);
+
+        then(optionRepository).shouldHaveNoInteractions();
     }
 }
