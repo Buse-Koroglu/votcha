@@ -4,6 +4,7 @@ import com.example.votify_meet.users.api.dto.UpdateUsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.api.mapper.UsersMapper;
+import com.example.votify_meet.users.domain.exception.UserIsAlreadyExistsException;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
@@ -20,11 +21,14 @@ public class UsersService {
         this.usersMapper = usersMapper;
     }
 
-    // Will be updated
     public UsersResponseDto createUser(UsersRequestDto request) {
+        Users user = usersRepo.findByEmail(request.email());
+        if (user != null) {
+            throw new UserIsAlreadyExistsException(String.format("User with email %s already exists", request.email()));
+        }
         return usersMapper.toResponse(usersRepo.save(usersMapper.toEntity(request)));
     }
-    // Will be updated
+
     public UsersResponseDto getUser(String id) {
         return usersMapper.toResponse(usersRepo.findById(id).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", id))));
     }
@@ -34,7 +38,7 @@ public class UsersService {
         return usersMapper.toResponse(user);
 
     }
-    // will be updated
+
     public UsersResponseDto patchUser(String id, UpdateUsersRequestDto request) {
         Users user = usersRepo.findById(id).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", id)));
         usersMapper.update(request, user);
