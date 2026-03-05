@@ -103,7 +103,7 @@ public class EventServiceTest {
         EventResponseDto expectedResponse = new EventResponseDto("e-123","Meet",null,null,null,null,null,null,userId,Collections.emptyList());
 
         // Act
-        given(eventsRepo.findById(eventId)).willReturn(Optional.of(event));
+        //given(eventsRepo.findById(eventId)).willReturn(Optional.of(event));
         given(eventMapper.toResponse(eq(event),eq(Collections.emptyList()))).willReturn(expectedResponse);
 
         // Act
