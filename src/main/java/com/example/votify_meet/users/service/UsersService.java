@@ -22,10 +22,9 @@ public class UsersService {
     }
 
     public UsersResponseDto createUser(UsersRequestDto request) {
-        Users user = usersRepo.findByEmail(request.email());
-        if (user != null) {
+        usersRepo.findByEmail(request.email()).ifPresent(user -> {
             throw new UserIsAlreadyExistsException(String.format("User with email %s already exists", request.email()));
-        }
+        });
         return usersMapper.toResponse(usersRepo.save(usersMapper.toEntity(request)));
     }
 

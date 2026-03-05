@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class UsersController {
     private final UsersService usersService;
 
+    // todo - BURASI auth paketine taşındı, GÜNCELLENECEK
     @PostMapping("")
     public ResponseEntity<UsersResponseDto> createUser(@Valid @RequestBody UsersRequestDto request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(usersService.createUser(request));

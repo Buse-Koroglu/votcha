@@ -1,13 +1,14 @@
 package com.example.votify_meet.votes.api.controller;
 
+import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.votes.api.dto.VoteRequestDto;
 import com.example.votify_meet.votes.api.dto.VoteResponseDto;
 import com.example.votify_meet.votes.service.VoteService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,9 +22,11 @@ public class VoteController {
     }
 
     @PostMapping("")
-    public ResponseEntity<VoteResponseDto> createVote(@RequestHeader("X-User-Id") String userId, @Valid @RequestBody VoteRequestDto request){
-        return ResponseEntity.status(HttpStatus.CREATED).body(voteService.createVote(request, userId));
+    public ResponseEntity<VoteResponseDto> createVote(@AuthenticationPrincipal Users currentUser, @Valid @RequestBody VoteRequestDto request){
+        return ResponseEntity.status(HttpStatus.CREATED).body(voteService.createVote(request, currentUser.getId()));
     }
+
+    // todo - TEST ORTAMI İÇN KALSIN, İLERİDE GÜNCELLENECEK, ŞİMDİLİK TÜM USERLAR GERÇEKLEŞTİREVİLİR AŞAĞIDAKİ METOTLARI
     @GetMapping("/{id}")
     public ResponseEntity<VoteResponseDto> getVote(@PathVariable String id){
         return ResponseEntity.ok(voteService.getVote(id));
