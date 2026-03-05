@@ -184,4 +184,6 @@ public class EventControllerTest {
                 .content(objectMapper.writeValueAsString(request))
         ).andExpect(status().isBadRequest());
     }
+
+
 }
