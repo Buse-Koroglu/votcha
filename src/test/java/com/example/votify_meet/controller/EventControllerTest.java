@@ -50,7 +50,7 @@ public class EventControllerTest {
 
     @BeforeEach
     public void setup() {
-        deadline =Instant.parse("2029-03-04T19:42:11.234Z");
+        deadline =Instant.parse("2030-03-04T19:42:11.234Z");
         standardResponse = new EventResponseDto(
                 EVENT_ID, "Meet Event","Today",Status.OPEN,
                 EventType.STANDARD, null, null, deadline, USER_ID, null
