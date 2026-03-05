@@ -48,6 +48,4 @@ public class VoteServiceTest {
     // todo - OptionNotFound
     // todo - Past deadline
     // todo - Unauthorized update/delete
-
-
 }
