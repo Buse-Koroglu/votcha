@@ -28,7 +28,6 @@ public class UsersController {
     @DeleteMapping("/me")
     @ResponseStatus(HttpStatus.OK)
     public UsersResponseDto deleteUser(@AuthenticationPrincipal Users user) {
-        usersService.deleteUser(user.getId());
         return usersService.deleteUser(user.getId());
     }
     @PatchMapping("/me")

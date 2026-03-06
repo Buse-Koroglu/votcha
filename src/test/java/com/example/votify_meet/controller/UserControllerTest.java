@@ -101,7 +101,7 @@ public class UserControllerTest {
                         .with(csrf())
                         .with(user(mockUser))
                 )
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         verify(usersService, times(1)).deleteUser(USER_ID);
     }
