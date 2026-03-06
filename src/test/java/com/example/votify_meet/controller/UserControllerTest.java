@@ -1,11 +1,13 @@
 package com.example.votify_meet.controller;
 
+import com.example.votify_meet.config.JwtService;
 import com.example.votify_meet.users.api.controller.UsersController;
 import com.example.votify_meet.users.api.dto.UpdateUsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.api.mapper.UsersMapper;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
+import com.example.votify_meet.users.domain.model.Role;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.service.UsersService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -22,6 +25,8 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,19 +36,31 @@ public class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean private UsersService usersService;
+    @MockitoBean private JwtService jwtService;
+    @MockitoBean private UserDetailsService userDetailsService;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    @MockitoBean
-    private UsersService usersService;
+
     private final String USER_ID = "1";
     private final String FIRST_NAME = "Jack";
     private final String LAST_NAME = "London";
     private final String EMAIL = "jack@gmail.com";
 
+    private Users mockUser;
     private UsersResponseDto standardResponse;
 
     @BeforeEach
     void setUp() {
         standardResponse = new UsersResponseDto(USER_ID, FIRST_NAME, LAST_NAME, EMAIL, null, null);
+        mockUser = Users.builder()
+                .id(USER_ID)
+                .firstName("John")
+                .lastName("Doe")
+                .email("john.doe@gmail.com")
+                .role(Role.USER)
+                .password("1111").build();
+
     }
 
     @Test
@@ -57,6 +74,8 @@ public class UserControllerTest {
 
         // Assert
         mockMvc.perform(post("/api/users")
+                        .with(csrf())
+                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -72,6 +91,8 @@ public class UserControllerTest {
 
         // Assert
         mockMvc.perform(post("/api/users")
+                        .with(csrf())
+                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -84,7 +105,10 @@ public class UserControllerTest {
         when(usersService.getUser(USER_ID)).thenReturn(standardResponse);
 
         // Assert
-        mockMvc.perform(get("/api/users/{id}", USER_ID))
+        mockMvc.perform(get("/api/users/{id}", USER_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(USER_ID))
                 .andExpect(jsonPath("$.firstName").value(FIRST_NAME));
@@ -97,7 +121,10 @@ public class UserControllerTest {
         when(usersService.getUser("2")).thenThrow(new UserNotFoundException("User Not Found"));
 
         // Assert
-        mockMvc.perform(get("/api/users/{id}", "2"))
+        mockMvc.perform(get("/api/users/{id}", "2")
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isNotFound());
     }
 
@@ -108,7 +135,10 @@ public class UserControllerTest {
         when(usersService.deleteUser(USER_ID)).thenReturn(standardResponse);
 
         // Arrange
-        mockMvc.perform(delete("/api/users/{id}", USER_ID))
+        mockMvc.perform(delete("/api/users/{id}", USER_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(USER_ID));
     }
@@ -120,7 +150,10 @@ public class UserControllerTest {
         when(usersService.deleteUser(USER_ID)).thenThrow(new UserNotFoundException("User Not Found"));
 
         // Assert
-        mockMvc.perform(delete("/api/users/{id}", USER_ID))
+        mockMvc.perform(delete("/api/users/{id}", USER_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isNotFound());
     }
 
@@ -135,6 +168,8 @@ public class UserControllerTest {
 
         // Assert
         mockMvc.perform(patch("/api/users/{id}", USER_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -148,6 +183,8 @@ public class UserControllerTest {
         UpdateUsersRequestDto request = new UpdateUsersRequestDto("", "", "", "");
 
         mockMvc.perform(patch("/api/users/{id}", USER_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());

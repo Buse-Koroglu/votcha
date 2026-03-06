@@ -1,4 +1,5 @@
 package com.example.votify_meet.controller;
+import com.example.votify_meet.config.JwtService;
 import com.example.votify_meet.events.api.controller.EventController;
 import com.example.votify_meet.events.api.dto.EventRequestDto;
 import com.example.votify_meet.events.api.dto.EventResponseDto;
@@ -8,6 +9,8 @@ import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.events.domain.model.EventType;
 import com.example.votify_meet.events.domain.model.Status;
 import com.example.votify_meet.events.service.EventService;
+import com.example.votify_meet.users.domain.model.Role;
+import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.service.UsersService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,6 +31,8 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,17 +43,18 @@ public class EventControllerTest {
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-    @MockitoBean
-    private EventService eventService;
-    @MockitoBean
-    private UsersService usersService;
-    @MockitoBean
-    private EventMapper eventMapper;
+
+    @MockitoBean private EventService eventService;
+    @MockitoBean private UsersService usersService;
+    @MockitoBean private EventMapper eventMapper;
+    @MockitoBean private JwtService jwtService;
+    @MockitoBean private UserDetailsService userDetailsService;
 
     private final String EVENT_ID = "1";
     private final String USER_ID = "1";
     private Instant deadline;
     private EventResponseDto standardResponse;
+    private  Users mockUser;
 
     @BeforeEach
     public void setup() {
@@ -55,6 +63,13 @@ public class EventControllerTest {
                 EVENT_ID, "Meet Event","Today",Status.OPEN,
                 EventType.STANDARD, null, null, deadline, USER_ID, null
         );
+        mockUser = Users.builder()
+                .id(USER_ID)
+                .email("john.doe@gmail.com")
+                .firstName("John")
+                .lastName("Doe")
+                .role(Role.USER)
+                .password("1111").build();
     }
 
     @Test
@@ -66,9 +81,11 @@ public class EventControllerTest {
         // Act
         when(eventService.createEvent(any(EventRequestDto.class),anyString())).thenReturn(standardResponse);
 
+
         // Assert
         mockMvc.perform(post("/api/events")
-                        .header("X-User-Id", USER_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -92,8 +109,9 @@ public class EventControllerTest {
 
         // Act & Assert
         mockMvc.perform(post("/api/events")
+                        .with(csrf())
+                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-User-Id", USER_ID)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
@@ -105,7 +123,10 @@ public class EventControllerTest {
         when(eventService.getEvent(EVENT_ID)).thenReturn(standardResponse);
 
         // Assert
-        mockMvc.perform(get("/api/events/{id}",EVENT_ID))
+        mockMvc.perform(get("/api/events/{id}",EVENT_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(EVENT_ID))
                 .andExpect(jsonPath("$.description").value("Today"))
@@ -119,7 +140,10 @@ public class EventControllerTest {
         when(eventService.getEvent(EVENT_ID)).thenThrow(new EventNotFoundException("Event Not Found"));
 
         // Assert
-        mockMvc.perform(get("/api/events/{id}",EVENT_ID))
+        mockMvc.perform(get("/api/events/{id}",EVENT_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isNotFound());
     }
     @Test
@@ -129,7 +153,10 @@ public class EventControllerTest {
         when(eventService.deleteEvent(EVENT_ID)).thenReturn(standardResponse);
 
         // Assert
-        mockMvc.perform(delete("/api/events/{id}",EVENT_ID))
+        mockMvc.perform(delete("/api/events/{id}",EVENT_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(EVENT_ID));
     }
@@ -141,7 +168,10 @@ public class EventControllerTest {
         when(eventService.deleteEvent(EVENT_ID)).thenThrow(new EventNotFoundException("Event Not Found"));
 
         // Assert
-        mockMvc.perform(delete("/api/events/{id}",EVENT_ID))
+        mockMvc.perform(delete("/api/events/{id}",EVENT_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isNotFound());
     }
 
@@ -156,6 +186,8 @@ public class EventControllerTest {
 
         // Asset
         mockMvc.perform(patch("/api/events/{id}",EVENT_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -180,6 +212,8 @@ public class EventControllerTest {
 
         // Act & Assert
         mockMvc.perform(patch("/api/events/{id}",EVENT_ID)
+                .with(csrf())
+                .with(user(mockUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andExpect(status().isBadRequest());

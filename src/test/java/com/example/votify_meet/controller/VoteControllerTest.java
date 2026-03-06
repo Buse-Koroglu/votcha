@@ -1,5 +1,8 @@
 package com.example.votify_meet.controller;
 
+import com.example.votify_meet.config.JwtService;
+import com.example.votify_meet.users.domain.model.Role;
+import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.votes.api.controller.VoteController;
 import com.example.votify_meet.votes.api.dto.VoteRequestDto;
 import com.example.votify_meet.votes.api.dto.VoteResponseDto;
@@ -12,11 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -26,19 +31,28 @@ public class VoteControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockitoBean private VoteService voteService;
+    @MockitoBean private JwtService jwtService;
+    @MockitoBean private UserDetailsService userDetailsService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @MockitoBean
-    private VoteService voteService;
-
     private final String VOTE_ID = "1";
     private final String OPTION_ID = "2";
     private final String USER_ID = "3";
     private VoteResponseDto standardResponse;
+    private Users mockUser;
 
     @BeforeEach
     public void setup() {
-        standardResponse = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);;
+        standardResponse = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);
+        mockUser = Users.builder()
+                .id(USER_ID)
+                .firstName("John")
+                .lastName("Doe")
+                .email("john.doe@gmail.com")
+                .role(Role.USER)
+                .password("1111").build();
+
     }
 
 
@@ -53,7 +67,8 @@ public class VoteControllerTest {
 
         // Assert
         mockMvc.perform(post("/api/votes")
-                    .header("X-User-Id",USER_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -69,6 +84,8 @@ public class VoteControllerTest {
 
         // Act & Assert
         mockMvc.perform(post("/api/votes")
+                        .with(csrf())
+                        .with(user(mockUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -84,7 +101,10 @@ public class VoteControllerTest {
         when(voteService.getVote(VOTE_ID)).thenReturn(response);
 
         // Assert
-        mockMvc.perform(get("/api/votes/{id}",VOTE_ID))
+        mockMvc.perform(get("/api/votes/{id}",VOTE_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(VOTE_ID))
                 .andExpect(jsonPath("$.optionId").value(OPTION_ID));
@@ -98,7 +118,10 @@ public class VoteControllerTest {
         when(voteService.getVote(VOTE_ID)).thenThrow(new VoteNotFoundException("Vote Not Found"));
 
         // Assert
-        mockMvc.perform(get("/api/votes/{id}",VOTE_ID))
+        mockMvc.perform(get("/api/votes/{id}",VOTE_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isNotFound());
     }
 
@@ -107,7 +130,10 @@ public class VoteControllerTest {
     void deleteVote_returns200_whenVoteDeleted() throws  Exception{
         VoteResponseDto response = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);
         when(voteService.deleteVote(VOTE_ID)).thenReturn(response);
-        mockMvc.perform(delete("/api/votes/{id}",VOTE_ID))
+        mockMvc.perform(delete("/api/votes/{id}",VOTE_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(VOTE_ID));
     }
@@ -116,7 +142,10 @@ public class VoteControllerTest {
     @DisplayName("Delete a non-existing Vote - 404 Not Found should return.")
     void deleteVote_returns404_whenVoteNotFound() throws Exception{
         when(voteService.deleteVote(VOTE_ID)).thenThrow(new VoteNotFoundException("Vote Not Found"));
-        mockMvc.perform(delete("/api/votes/{id}",VOTE_ID))
+        mockMvc.perform(delete("/api/votes/{id}",VOTE_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
                 .andExpect(status().isNotFound());
     }
 
@@ -131,6 +160,8 @@ public class VoteControllerTest {
 
         // Assert
         mockMvc.perform(patch("/api/votes/{id}",VOTE_ID)
+                                .with(csrf())
+                                .with(user(mockUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 ).andExpect(status().isOk())
@@ -144,6 +175,8 @@ public class VoteControllerTest {
         VoteRequestDto request = new VoteRequestDto("");
 
         mockMvc.perform(patch("/api/votes/{id}",VOTE_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
