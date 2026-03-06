@@ -2,7 +2,6 @@ package com.example.votify_meet.votes.api.mapper;
 
 import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.users.domain.model.Users;
-import com.example.votify_meet.votes.api.dto.VoteRequestDto;
 import com.example.votify_meet.votes.api.dto.VoteResponseDto;
 import com.example.votify_meet.votes.domain.model.Vote;
 import org.springframework.stereotype.Component;

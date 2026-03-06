@@ -1,4 +1,5 @@
 package com.example.votify_meet.controller;
+
 import com.example.votify_meet.config.JwtService;
 import com.example.votify_meet.events.api.controller.EventController;
 import com.example.votify_meet.events.api.dto.EventRequestDto;
@@ -20,10 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 
 import java.time.Instant;
 

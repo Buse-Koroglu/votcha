@@ -8,7 +8,6 @@ import com.example.votify_meet.users.domain.model.Users;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,25 +23,29 @@ public class OptionController {
     }
 
     @PostMapping("/events/{id}/options")
-    public ResponseEntity<OptionResponseDto> createOption(@AuthenticationPrincipal Users currentUser, @Valid @RequestBody OptionRequestDto request, @PathVariable(name = "id") String eventId){
-        return ResponseEntity.status(HttpStatus.CREATED).body(optionService.createOption(request, eventId, currentUser.getId()));
+    @ResponseStatus(HttpStatus.CREATED)
+    public OptionResponseDto createOption(@AuthenticationPrincipal Users currentUser, @Valid @RequestBody OptionRequestDto request, @PathVariable(name = "id") String eventId){
+        return optionService.createOption(request, eventId, currentUser.getId());
     }
 
     // todo - TEST ORTAMI İÇİN BUNLAR İLERİDE GÜNCELLENECEK, HER USER KENDİ İŞİNİ KENDİ GÖRECEK
 
     @GetMapping("/options/{id}")
-    public ResponseEntity<OptionResponseDto> getOption(@PathVariable String id){
-        return ResponseEntity.ok(optionService.getOption(id));
+    @ResponseStatus(HttpStatus.OK)
+    public OptionResponseDto getOption(@PathVariable String id){
+        return optionService.getOption(id);
     }
 
     @DeleteMapping("/options/{id}")
-    public ResponseEntity<OptionResponseDto> deleteOption(@PathVariable String id){
-        return ResponseEntity.ok(optionService.deleteOption(id));
+    @ResponseStatus(HttpStatus.OK)
+    public OptionResponseDto deleteOption(@PathVariable String id){
+        return optionService.deleteOption(id);
     }
 
     @PatchMapping("/options/{id}")
-    public ResponseEntity<OptionResponseDto> updateOption(@Valid @RequestBody UpdateOptionRequestDto request, @PathVariable(name = "id") String id){
-        return ResponseEntity.ok(optionService.patchOption(id, request));
+    @ResponseStatus(HttpStatus.OK)
+    public OptionResponseDto updateOption(@Valid @RequestBody UpdateOptionRequestDto request, @PathVariable(name = "id") String id){
+        return optionService.patchOption(id, request);
     }
 
 

@@ -22,22 +22,26 @@ public class VoteController {
     }
 
     @PostMapping("")
-    public ResponseEntity<VoteResponseDto> createVote(@AuthenticationPrincipal Users currentUser, @Valid @RequestBody VoteRequestDto request){
-        return ResponseEntity.status(HttpStatus.CREATED).body(voteService.createVote(request, currentUser.getId()));
+    @ResponseStatus(HttpStatus.CREATED)
+    public VoteResponseDto createVote(@AuthenticationPrincipal Users currentUser, @Valid @RequestBody VoteRequestDto request){
+        return voteService.createVote(request, currentUser.getId());
     }
 
     // todo - TEST ORTAMI İÇN KALSIN, İLERİDE GÜNCELLENECEK, ŞİMDİLİK TÜM USERLAR GERÇEKLEŞTİREVİLİR AŞAĞIDAKİ METOTLARI
     @GetMapping("/{id}")
-    public ResponseEntity<VoteResponseDto> getVote(@PathVariable String id){
-        return ResponseEntity.ok(voteService.getVote(id));
+    @ResponseStatus(HttpStatus.OK)
+    public VoteResponseDto getVote(@PathVariable String id){
+        return voteService.getVote(id);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<VoteResponseDto> deleteVote(@PathVariable String id){
-        return ResponseEntity.ok(voteService.deleteVote(id));
+    @ResponseStatus(HttpStatus.OK)
+    public VoteResponseDto deleteVote(@PathVariable String id){
+        return voteService.deleteVote(id);
     }
     @PatchMapping("/{id}")
-    public ResponseEntity<VoteResponseDto> updateVote(@PathVariable(name = "id") String id,@Valid @RequestBody VoteRequestDto request){
-        return ResponseEntity.ok(voteService.updateVote(id, request));
+    @ResponseStatus(HttpStatus.OK)
+    public VoteResponseDto updateVote(@PathVariable(name = "id") String id,@Valid @RequestBody VoteRequestDto request){
+        return voteService.updateVote(id, request);
     }
 }

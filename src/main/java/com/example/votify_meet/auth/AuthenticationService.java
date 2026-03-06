@@ -2,7 +2,6 @@ package com.example.votify_meet.auth;
 
 import com.example.votify_meet.config.JwtService;
 import com.example.votify_meet.users.api.dto.UsersRequestDto;
-import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.api.mapper.UsersMapper;
 import com.example.votify_meet.users.domain.exception.UserIsAlreadyExistsException;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;

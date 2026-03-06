@@ -1,6 +1,5 @@
 package com.example.votify_meet.events.domain.repository;
 
-import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.domain.model.Event;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
