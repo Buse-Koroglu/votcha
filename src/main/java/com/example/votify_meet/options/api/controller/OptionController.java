@@ -22,31 +22,33 @@ public class OptionController {
         this.optionService = optionService;
     }
 
+
     @PostMapping("/events/{id}/options")
     @ResponseStatus(HttpStatus.CREATED)
-    public OptionResponseDto createOption(@AuthenticationPrincipal Users currentUser, @Valid @RequestBody OptionRequestDto request, @PathVariable(name = "id") String eventId){
+    public OptionResponseDto createOption(@AuthenticationPrincipal Users currentUser,
+                                          @Valid @RequestBody OptionRequestDto request,
+                                          @PathVariable(name = "id") String eventId){
         return optionService.createOption(request, eventId, currentUser.getId());
     }
 
-    // todo - TEST ORTAMI İÇİN BUNLAR İLERİDE GÜNCELLENECEK, HER USER KENDİ İŞİNİ KENDİ GÖRECEK
 
     @GetMapping("/options/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public OptionResponseDto getOption(@PathVariable String id){
-        return optionService.getOption(id);
+    public OptionResponseDto getOption(@AuthenticationPrincipal Users user, @PathVariable String id){
+        return optionService.getUserOption(user, id);
     }
 
     @DeleteMapping("/options/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public OptionResponseDto deleteOption(@PathVariable String id){
-        return optionService.deleteOption(id);
+    public OptionResponseDto deleteOption(@AuthenticationPrincipal Users user, @PathVariable String id){
+        return optionService.deleteUserOption(user, id);
     }
 
     @PatchMapping("/options/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public OptionResponseDto updateOption(@Valid @RequestBody UpdateOptionRequestDto request, @PathVariable(name = "id") String id){
-        return optionService.patchOption(id, request);
+    public OptionResponseDto updateOption(@AuthenticationPrincipal Users user,
+                                          @Valid @RequestBody UpdateOptionRequestDto request,
+                                          @PathVariable(name = "id") String id){
+        return optionService.patchUserOption(user, id, request);
     }
-
-
 }

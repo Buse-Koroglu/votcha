@@ -38,7 +38,7 @@ public class VoteServiceTest {
 
         VoteRequestDto request = new VoteRequestDto("op-2");
         given(optionRepository.findById(optionId)).willReturn(Optional.of(secondOption));
-        given(voteRepository.existsByVoterIdAndOption_EventId(userId,eventId)).willReturn(true);
+        given(voteRepository.existsByVoterIdAndOption_Event_Id(userId,eventId)).willReturn(true);
 
          // Act & Assert
         assertThatThrownBy(() -> voteService.createVote(request,userId))

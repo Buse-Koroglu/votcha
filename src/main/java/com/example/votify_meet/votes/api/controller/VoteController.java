@@ -7,7 +7,6 @@ import com.example.votify_meet.votes.service.VoteService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,18 +26,18 @@ public class VoteController {
         return voteService.createVote(request, currentUser.getId());
     }
 
-    // todo - TEST ORTAMI İÇN KALSIN, İLERİDE GÜNCELLENECEK, ŞİMDİLİK TÜM USERLAR GERÇEKLEŞTİREVİLİR AŞAĞIDAKİ METOTLARI
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public VoteResponseDto getVote(@PathVariable String id){
-        return voteService.getVote(id);
+    public VoteResponseDto getVote(@AuthenticationPrincipal Users user, @PathVariable String id){
+        return voteService.getUserVote(user, id);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public VoteResponseDto deleteVote(@PathVariable String id){
-        return voteService.deleteVote(id);
+    public VoteResponseDto deleteVote(@AuthenticationPrincipal Users user, @PathVariable String id){
+        return voteService.deleteUserVote(user, id);
     }
+
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public VoteResponseDto updateVote(@PathVariable(name = "id") String id,@Valid @RequestBody VoteRequestDto request){

@@ -1,5 +1,6 @@
 package com.example.votify_meet.options.domain.model;
 import com.example.votify_meet.events.domain.model.Event;
+import com.example.votify_meet.users.domain.model.Users;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -35,5 +36,12 @@ public class Option {
     @JoinColumn(name = "event_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Event event;
+
+    public String getUserId() {
+        return event.getCreator().getId();
+    }
+    public String getEventId() {
+        return event.getId();
+    }
 
 }

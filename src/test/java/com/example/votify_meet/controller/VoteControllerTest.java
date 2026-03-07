@@ -98,7 +98,7 @@ public class VoteControllerTest {
         VoteResponseDto response = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);
 
         // Act
-        when(voteService.getVote(VOTE_ID)).thenReturn(response);
+        when(voteService.getUserVote(mockUser, VOTE_ID)).thenReturn(response);
 
         // Assert
         mockMvc.perform(get("/api/votes/{id}",VOTE_ID)
@@ -115,7 +115,7 @@ public class VoteControllerTest {
     @DisplayName("Retrieve non existing vote - 404 Not Found should return")
     void getVote_returns404_whenVoteNotExist() throws Exception{
         // Act
-        when(voteService.getVote(VOTE_ID)).thenThrow(new VoteNotFoundException("Vote Not Found"));
+        when(voteService.getUserVote(mockUser, VOTE_ID)).thenThrow(new VoteNotFoundException("Vote Not Found"));
 
         // Assert
         mockMvc.perform(get("/api/votes/{id}",VOTE_ID)
@@ -129,7 +129,7 @@ public class VoteControllerTest {
     @DisplayName("Delete vote - 200 Ok should return")
     void deleteVote_returns200_whenVoteDeleted() throws  Exception{
         VoteResponseDto response = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);
-        when(voteService.deleteVote(VOTE_ID)).thenReturn(response);
+        when(voteService.deleteUserVote(mockUser, VOTE_ID)).thenReturn(response);
         mockMvc.perform(delete("/api/votes/{id}",VOTE_ID)
                         .with(csrf())
                         .with(user(mockUser))
@@ -141,7 +141,7 @@ public class VoteControllerTest {
     @Test
     @DisplayName("Delete a non-existing Vote - 404 Not Found should return.")
     void deleteVote_returns404_whenVoteNotFound() throws Exception{
-        when(voteService.deleteVote(VOTE_ID)).thenThrow(new VoteNotFoundException("Vote Not Found"));
+        when(voteService.deleteUserVote(mockUser, VOTE_ID)).thenThrow(new VoteNotFoundException("Vote Not Found"));
         mockMvc.perform(delete("/api/votes/{id}",VOTE_ID)
                         .with(csrf())
                         .with(user(mockUser))

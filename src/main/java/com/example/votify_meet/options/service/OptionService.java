@@ -1,5 +1,6 @@
 package com.example.votify_meet.options.service;
 
+import com.example.votify_meet.common.exception.AccessDeniedException;
 import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.events.domain.repository.EventsRepo;
@@ -11,43 +12,51 @@ import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
 import com.example.votify_meet.options.domain.exception.UnauthorizedException;
 import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.options.domain.repository.OptionRepository;
+import com.example.votify_meet.users.domain.model.Users;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+
 @Service
+@RequiredArgsConstructor
 public class OptionService {
     private final OptionRepository optionRepository;
+    private final EventsRepo eventsRepository;
     private final OptionMapper optionMapper;
-    private final EventsRepo eventsRepo;
 
-    public OptionService(OptionRepository repository, OptionMapper mapper, EventsRepo eventsRepo) {
-        this.optionRepository = repository;
-        this.optionMapper = mapper;
-        this.eventsRepo = eventsRepo;
-    }
 
-    public OptionResponseDto getOption(String id){
-        return optionMapper.toResponse(optionRepository.findById(id).orElseThrow( () -> new OptionNotFoundException(String.format("Option with id %s not found", id))));
+    public OptionResponseDto getUserOption(Users user, String optionId){
+        return optionMapper.toResponse(getOwnedOption(user, optionId));
+
     }
 
     public OptionResponseDto createOption(OptionRequestDto request, String eventId, String creatorId){
-        Event event = eventsRepo.findById(eventId).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+        Event event = eventsRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
         if(!event.getCreator().getId().equals(creatorId)){
             throw new UnauthorizedException("Only the owner can add option to the event.");
         }
         return optionMapper.toResponse(optionRepository.saveAndFlush(optionMapper.toEntity(request, event)));
     }
 
-    public OptionResponseDto deleteOption(String id){
-        Option option = optionRepository.findById(id).orElseThrow(() -> new OptionNotFoundException(String.format("Option with id %s not found", id)));
+    public OptionResponseDto deleteUserOption(Users user, String id){
+        Option option = getOwnedOption(user, id);
         optionRepository.delete(option);
         return optionMapper.toResponse(option);
     }
 
-    public OptionResponseDto patchOption(String id, UpdateOptionRequestDto request){
-        Option option = optionRepository.findById(id).orElseThrow(() -> new OptionNotFoundException(String.format("Option with id %s not found", id)));
+    public OptionResponseDto patchUserOption(Users user, String id, UpdateOptionRequestDto request){
+        Option option = getOwnedOption(user, id);
         optionMapper.update(request,option);
         return optionMapper.toResponse(optionRepository.save(option));
     }
 
 
+    private Option getOwnedOption(Users user, String optionId){
+        Option option = optionRepository.findById(optionId).orElseThrow(() -> new OptionNotFoundException(String.format("Option with id %s not found", optionId)));
+
+        if(!option.getUserId().equals(user.getId())){
+            throw new AccessDeniedException("You are not allowed to access this option");
+        }
+        return option;
+    }
 }

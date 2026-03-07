@@ -99,7 +99,7 @@ public class OptionControllerTest {
     @DisplayName("Retrieving an Existing Option - 200 OK must be returned")
     void getOption_returns200_whenOptionExist() throws Exception{
         // Act
-        when(optionService.getOption("1")).thenReturn(standardResponse);
+        when(optionService.getUserOption(mockUser, OPTION_ID)).thenReturn(standardResponse);
 
         // Assert
         mockMvc.perform(get("/api/options/{id}",OPTION_ID)
@@ -117,7 +117,7 @@ public class OptionControllerTest {
     @Test
     @DisplayName("Retrieving up a non-existent option - should return 404 Not Found.")
     void getOptions_returns404_whenOptionNotExist() throws Exception{
-        when(optionService.getOption(OPTION_ID)).thenThrow(new OptionNotFoundException("Option Not Found"));
+        when(optionService.getUserOption(mockUser, OPTION_ID)).thenThrow(new OptionNotFoundException("Option Not Found"));
         mockMvc.perform(get("/api/options/{id}",OPTION_ID)
                         .with(user(mockUser))
                         .with(csrf())
@@ -129,7 +129,7 @@ public class OptionControllerTest {
     @DisplayName("Option Deletion - should return 200 ok.")
     void deleteOption_returns200_whenOptionDeleted() throws  Exception{
         // Act
-        when(optionService.deleteOption(OPTION_ID)).thenReturn(standardResponse);
+        when(optionService.deleteUserOption(mockUser, OPTION_ID)).thenReturn(standardResponse);
 
         // Arrange
         mockMvc.perform(delete("/api/options/{id}",OPTION_ID)
@@ -145,7 +145,7 @@ public class OptionControllerTest {
     @DisplayName("Delete Non Existing Option - Must Return 404 NotFound")
     void deleteOption_returns404_whenOptionNotFound() throws Exception{
         // Act
-        when(optionService.deleteOption(OPTION_ID)).thenThrow(new OptionNotFoundException("Option Not Found"));
+        when(optionService.deleteUserOption(mockUser, OPTION_ID)).thenThrow(new OptionNotFoundException("Option Not Found"));
 
         // Arrange
         mockMvc.perform(delete("/api/options/{id}",OPTION_ID)
@@ -162,7 +162,7 @@ public class OptionControllerTest {
         UpdateOptionRequestDto request = new UpdateOptionRequestDto("A");
 
         // Act
-        when(optionService.patchOption(OPTION_ID,request)).thenReturn(standardResponse);
+        when(optionService.patchUserOption(mockUser, OPTION_ID,request)).thenReturn(standardResponse);
 
         // Assert
         mockMvc.perform(patch("/api/options/{id}",OPTION_ID)

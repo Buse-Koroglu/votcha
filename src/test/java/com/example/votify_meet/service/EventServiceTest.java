@@ -9,8 +9,10 @@ import com.example.votify_meet.events.domain.repository.EventsRepo;
 import com.example.votify_meet.events.service.EventService;
 import com.example.votify_meet.options.domain.repository.OptionRepository;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
+import com.example.votify_meet.users.domain.model.Role;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +35,19 @@ public class EventServiceTest {
     @Mock private UsersRepo usersRepo;
     @Mock private EventMapper eventMapper;
     @Mock private OptionRepository optionRepo;
+    @Mock private Users mockUser;
     @InjectMocks private EventService eventService;
+
+    @BeforeEach
+    void setUp() {
+        mockUser = Users.builder()
+                .id("1")
+                .email("john.doe@gmail.com")
+                .firstName("John")
+                .lastName("Doe")
+                .role(Role.USER)
+                .password("1111").build();
+    }
 
     @Test
     @DisplayName("GIVEN valid request WHEN create event THEN return event with empty option list")
@@ -82,11 +96,10 @@ public class EventServiceTest {
         String invalidEventId = "ghost-event";
 
         // Act
-        given(optionRepo.findAllByEventId(invalidEventId)).willReturn(Collections.emptyList());
-        given(eventsRepo.findById(invalidEventId)).willReturn(Optional.empty());
+        given(eventsRepo.findByIdAndCreator(invalidEventId, mockUser)).willReturn(Optional.empty());
 
         // Assert:
-        assertThatThrownBy(() -> eventService.getEvent(invalidEventId))
+        assertThatThrownBy(() -> eventService.getUserEvent(mockUser, invalidEventId))
                 .isInstanceOf(EventNotFoundException.class)
                 .hasMessageContaining(invalidEventId);
     }
@@ -100,20 +113,20 @@ public class EventServiceTest {
         Users user = Users.builder().id(userId).build();
         Event event = Event.builder().id(eventId).title("Meet").creator(user).build();
 
-        EventResponseDto expectedResponse = new EventResponseDto("e-123","Meet",null,null,null,null,null,null,userId,Collections.emptyList());
+        EventResponseDto expectedResponse = new EventResponseDto(eventId,"Meet",null,null,null,null,null,null,userId,Collections.emptyList());
 
         // Act
-        given(eventsRepo.findById(eventId)).willReturn(Optional.of(event));
+        given(eventsRepo.findByIdAndCreator(eventId, mockUser)).willReturn(Optional.of(event));
         given(eventMapper.toResponse(eq(event),eq(Collections.emptyList()))).willReturn(expectedResponse);
 
         // Act
-        EventResponseDto actualResponse = eventService.deleteEvent(eventId);
+        EventResponseDto actualResponse = eventService.deleteUserEvent(mockUser, eventId);
 
         // Assert
         assertThat(actualResponse.options().isEmpty()).isTrue();
         assertThat(actualResponse.title()).isEqualTo("Meet");
 
-        verify(eventsRepo).deleteById(eventId);
+        verify(eventsRepo).delete(event);
     }
 
 }

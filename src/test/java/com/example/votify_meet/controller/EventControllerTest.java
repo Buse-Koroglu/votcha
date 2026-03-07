@@ -119,7 +119,7 @@ public class EventControllerTest {
     @DisplayName("Retrieve an Existing Event - It should return 200 OK and event data.")
     void getEvent_returns200_whenEventExist() throws Exception{
         // Act
-        when(eventService.getEvent(EVENT_ID)).thenReturn(standardResponse);
+        when(eventService.getUserEvent(mockUser, EVENT_ID)).thenReturn(standardResponse);
 
         // Assert
         mockMvc.perform(get("/api/events/{id}",EVENT_ID)
@@ -136,7 +136,7 @@ public class EventControllerTest {
     @DisplayName("Retrieving a non-existent event - it should return a 404 Not Found error.")
     void getEvent_returns404_whenEventNotExist() throws Exception{
         // Act
-        when(eventService.getEvent(EVENT_ID)).thenThrow(new EventNotFoundException("Event Not Found"));
+        when(eventService.getUserEvent(mockUser, EVENT_ID)).thenThrow(new EventNotFoundException("Event Not Found"));
 
         // Assert
         mockMvc.perform(get("/api/events/{id}",EVENT_ID)
@@ -149,7 +149,7 @@ public class EventControllerTest {
     @DisplayName("Event Deletion - Must return 200 OKs.")
     void deleteEvent_returns200_whenEventDeleted() throws Exception{
         // Act
-        when(eventService.deleteEvent(EVENT_ID)).thenReturn(standardResponse);
+       when(eventService.deleteUserEvent(mockUser, EVENT_ID)).thenReturn(standardResponse);
 
         // Assert
         mockMvc.perform(delete("/api/events/{id}",EVENT_ID)
@@ -164,7 +164,7 @@ public class EventControllerTest {
     @DisplayName("Non Existing Event Deletion - Must return 404 Not Found Error.")
     void deleteEvent_returns404_whenEventNotFound() throws Exception{
         // Act
-        when(eventService.deleteEvent(EVENT_ID)).thenThrow(new EventNotFoundException("Event Not Found"));
+       when(eventService.deleteUserEvent(mockUser, EVENT_ID)).thenThrow(new EventNotFoundException("Event Not Found"));
 
         // Assert
         mockMvc.perform(delete("/api/events/{id}",EVENT_ID)
@@ -181,7 +181,7 @@ public class EventControllerTest {
         UpdateEventRequestDto request = new UpdateEventRequestDto("Meet Event","Today",deadline);
 
         // Act
-        when(eventService.updateEvent(EVENT_ID,request)).thenReturn(standardResponse);
+        when(eventService.updateUserEvents(mockUser, EVENT_ID,request)).thenReturn(standardResponse);
 
         // Asset
         mockMvc.perform(patch("/api/events/{id}",EVENT_ID)

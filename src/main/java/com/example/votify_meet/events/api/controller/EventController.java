@@ -24,7 +24,7 @@ public class EventController {
     }
 
     // todo - find the reason of yellow warnings then solve it
-
+    // Successful
     @PostMapping("/events")
     @ResponseStatus(HttpStatus.CREATED)
     public EventResponseDto createEvent(@AuthenticationPrincipal Users currentUser, @Valid @RequestBody EventRequestDto eventRequestDto) {
@@ -32,6 +32,7 @@ public class EventController {
         return eventService.createEvent(eventRequestDto, userId);
     }
 
+    // Get all event for a user
     @GetMapping("/users/me/events")
     @ResponseStatus(HttpStatus.OK)
     public List<EventResponseDto> getEvents(@AuthenticationPrincipal Users currentUser) {
@@ -39,24 +40,25 @@ public class EventController {
 
     }
 
-    // todo - alttaki metotlar düzenlenecek, bunlar test ortamı için, her user aşağıdaki metotları çalıştırabilir
-    // todo - CİDDİ AÇIK İLERİDE DÜZENLE TEST ORTAMI İÇİN KALSIN
+    // Get a particular event for a user
     @GetMapping("/events/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public EventResponseDto getEvent(@PathVariable(name = "id") String id) {
-        return eventService.getEvent(id);
+    public EventResponseDto getEvent(@AuthenticationPrincipal Users user, @PathVariable(name = "id") String id) {
+        return eventService.getUserEvent(user, id);
     }
 
+    // Delete a user event
     @DeleteMapping("/events/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public EventResponseDto deleteEvent(@PathVariable String id) {
-        return eventService.deleteEvent(id);
+    public EventResponseDto deleteEvent(@AuthenticationPrincipal Users user, @PathVariable String id) {
+        return eventService.deleteUserEvent(user, id);
     }
 
+    // Update a user event
     @PatchMapping("/events/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public EventResponseDto updateEvent(@PathVariable String id, @Valid @RequestBody UpdateEventRequestDto request) {
-        return eventService.updateEvent(id, request);
+    public EventResponseDto updateEvent(@AuthenticationPrincipal Users user, @PathVariable String id, @Valid @RequestBody UpdateEventRequestDto request) {
+        return eventService.updateUserEvents(user, id, request);
     }
 
 }

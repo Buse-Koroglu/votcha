@@ -36,7 +36,7 @@ public class VoteService {
     @Transactional
     public VoteResponseDto createVote(VoteRequestDto request, String userId){
         Option option = optionRepository.findById(request.optionId()).orElseThrow( () -> new OptionNotFoundException(String.format("Option with id %s not found", request.optionId())));
-        boolean alreadyVoted = voteRepository.existsByVoterIdAndOption_EventId(userId,option.getEvent().getId());
+        boolean alreadyVoted = voteRepository.existsByVoterIdAndOption_Event_Id(userId,option.getEvent().getId());
         if(alreadyVoted){
             throw new AlreadyVotedException("User can not vote more than one time.");
         }
@@ -45,13 +45,13 @@ public class VoteService {
         return voteMapper.toResponse(voteRepository.saveAndFlush(vote));
     }
 
-    public VoteResponseDto getVote(String id){
-        return voteMapper.toResponse(voteRepository.findById(id).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id))));
+    public VoteResponseDto getUserVote(Users user, String id){
+        return voteMapper.toResponse(voteRepository.findByIdAndVoter(id, user).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id))));
     }
 
 
-    public VoteResponseDto deleteVote(String id){
-        Vote vote = voteRepository.findById(id).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id)));
+    public VoteResponseDto deleteUserVote(Users user, String id){
+        Vote vote = voteRepository.findByIdAndVoter(id, user).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id)));
         voteRepository.delete(vote);
         return voteMapper.toResponse(vote);
     }
