@@ -95,7 +95,7 @@ public class EventService {
         if(events.isEmpty()) {
             return;
         }
-        log.info("Revealing expired {} surprise events",  events.size());
+        log.info("[SCHEDULER] Revealing expired {} surprise events",  events.size());
         events.forEach(event -> event.setType(EventType.STANDARD));
 
         eventsRepo.saveAll(events);

@@ -60,10 +60,14 @@ public class GlobalExceptionHandler {
         return errors;
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
+    @ExceptionHandler({
+            UnauthorizedException.class,
+            TokenExpiredException.class,
+            TokenRevokedException.class
+    })
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public Map<String, String> handleUnauthorizedException(
-            UnauthorizedException ex) {
+            RuntimeException ex) {
 
         return Map.of("error", ex.getMessage());
     }

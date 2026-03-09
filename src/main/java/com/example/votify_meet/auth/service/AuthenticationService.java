@@ -37,7 +37,6 @@ public class AuthenticationService {
         usersRepo.save(user);
 
         String jwtToken = jwtService.generateToken(user); // for access token
-        refreshTokenService.createRefreshToken(user); // for refresh token
         return new AuthResponseDto(jwtToken, "User successfully registered");
     }
     public LoginResponseDto login(AuthRequestDto request){
