@@ -22,8 +22,7 @@ public class EventController {
     public EventController(EventService eventService) {
         this.eventService = eventService;
     }
-
-    // todo - find the reason of yellow warnings then solve it
+    
     // Successful
     @PostMapping("/events")
     @ResponseStatus(HttpStatus.CREATED)

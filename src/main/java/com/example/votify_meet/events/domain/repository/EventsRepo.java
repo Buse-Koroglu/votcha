@@ -1,12 +1,15 @@
 package com.example.votify_meet.events.domain.repository;
 
 import com.example.votify_meet.events.domain.model.Event;
+import com.example.votify_meet.events.domain.model.EventType;
 import com.example.votify_meet.users.domain.model.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,5 +20,6 @@ public interface EventsRepo extends JpaRepository<Event, String> {
 
     Optional<Event> findByIdAndCreator(String eventId, Users user);
 
+    Optional<List<Event>> findAllByTypeAndDeadlineBefore(EventType eventType, Instant deadline);
 
 }

@@ -5,6 +5,7 @@ import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.api.mapper.EventMapper;
 import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.events.domain.model.Event;
+import com.example.votify_meet.events.domain.model.EventType;
 import com.example.votify_meet.events.domain.repository.EventsRepo;
 import com.example.votify_meet.events.service.EventService;
 import com.example.votify_meet.options.domain.repository.OptionRepository;
@@ -72,6 +73,60 @@ public class EventServiceTest {
         // Assert
         assertThat(actualResponse.options()).isEmpty();
         assertThat(actualResponse.title()).isEqualTo("Meet");
+    }
+
+    @Test
+    @DisplayName("GIVEN SURPRISED EventType WHEN map to response THEN description should be null")
+    void givenSurprisedEventType_whenMapToResponse_thenDescriptionShouldBeNull(){
+        // Arrange
+        String userId = "u-123";
+        Users user = Users.builder().id(userId).build();
+        Event savedEvent = Event.builder()
+                .id("e-123")
+                .title("Surprise Party")
+                .creator(user)
+                .description("Dont return te description if it is surprised!")
+                .type(EventType.SURPRISED)
+                .build();
+
+        // Act
+        EventResponseDto expectedResponse = EventResponseDto.builder()
+                .title("Surprise Party")
+                .description(null).build();
+
+        given(eventMapper.toResponse(eq(savedEvent), eq(Collections.emptyList()))).willReturn(expectedResponse);
+        EventResponseDto response = eventMapper.toResponse(savedEvent, Collections.emptyList());
+
+        // Assert
+        assertThat(response.description()).isNull();
+        assertThat(response.title()).isEqualTo("Surprise Party");
+    }
+
+    @Test
+    @DisplayName("GIVEN STANDARD EventType WHEN map to response THEN description should not be null")
+    void givenStandardEventType_whenMapToResponse_thenDescriptionShouldNotBeNull(){
+        // Arrange
+        String userId = "u-123";
+        Users user = Users.builder().id(userId).build();
+        Event savedEvent = Event.builder()
+                .id("e-123")
+                .title("Surprise Party")
+                .creator(user)
+                .description("Dont return te description if it is surprised!")
+                .type(EventType.SURPRISED)
+                .build();
+
+        // Act
+        EventResponseDto expectedResponse = EventResponseDto.builder()
+                .title("Surprise Party")
+                .description("Dont return te description if it is surprised!").build();
+
+        given(eventMapper.toResponse(eq(savedEvent), eq(Collections.emptyList()))).willReturn(expectedResponse);
+        EventResponseDto response = eventMapper.toResponse(savedEvent, Collections.emptyList());
+
+        // Assert
+        assertThat(response.description()).isEqualTo(savedEvent.getDescription());
+        assertThat(response.title()).isEqualTo("Surprise Party");
     }
 
     @Test

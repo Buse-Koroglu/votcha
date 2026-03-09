@@ -4,6 +4,7 @@ import com.example.votify_meet.events.api.dto.EventRequestDto;
 import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.api.dto.UpdateEventRequestDto;
 import com.example.votify_meet.events.domain.model.Event;
+import com.example.votify_meet.events.domain.model.EventType;
 import com.example.votify_meet.events.domain.model.Status;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;
 import com.example.votify_meet.options.api.mapper.OptionMapper;
@@ -24,11 +25,14 @@ public class EventMapper {
         List<OptionResponseDto> optionDtos = options.stream()
                 .map(optionMapper::toResponse)
                 .toList();
-
+        String desc = entity.getDescription();
+        if(entity.getType().equals(EventType.SURPRISED)){
+            desc = null;
+        }
         return EventResponseDto.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
-                .description(entity.getDescription())
+                .description(desc)
                 .deadline(entity.getDeadline())
                 .type(entity.getType())
                 .status(entity.getStatus())

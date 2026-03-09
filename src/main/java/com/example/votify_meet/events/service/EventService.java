@@ -6,6 +6,7 @@ import com.example.votify_meet.events.api.dto.UpdateEventRequestDto;
 import com.example.votify_meet.events.api.mapper.EventMapper;
 import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.events.domain.model.Event;
+import com.example.votify_meet.events.domain.model.EventType;
 import com.example.votify_meet.events.domain.repository.EventsRepo;
 import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.options.domain.repository.OptionRepository;
@@ -13,13 +14,16 @@ import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class EventService {
     private final EventsRepo eventsRepo;
@@ -83,6 +87,18 @@ public class EventService {
                     return eventMapper.toResponse(event, eventOptions);
                 })
                 .toList();
+    }
+
+    @Transactional
+    public void revealExpiredSurpriseEvents(){
+        List<Event> events = eventsRepo.findAllByTypeAndDeadlineBefore(EventType.SURPRISED, Instant.now()).orElse(Collections.emptyList());
+        if(events.isEmpty()) {
+            return;
+        }
+        log.info("Revealing expired {} surprise events",  events.size());
+        events.forEach(event -> event.setType(EventType.STANDARD));
+
+        eventsRepo.saveAll(events);
     }
 
 }
