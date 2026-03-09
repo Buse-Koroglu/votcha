@@ -4,6 +4,7 @@ import com.example.votify_meet.auth.api.dto.AuthRequestDto;
 import com.example.votify_meet.auth.api.dto.AuthResponseDto;
 import com.example.votify_meet.auth.api.controller.AuthenticationController;
 import com.example.votify_meet.auth.api.dto.LoginResponseDto;
+import com.example.votify_meet.auth.api.util.CookieHelper;
 import com.example.votify_meet.auth.domain.exception.TokenExpiredException;
 import com.example.votify_meet.auth.domain.exception.TokenNotFoundException;
 import com.example.votify_meet.auth.domain.exception.TokenRevokedException;
@@ -20,9 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -39,6 +43,7 @@ public class AuthControllerTest {
     @MockitoBean private JwtService  jwtService;
     @MockitoBean private UserDetailsService userDetailsService;
     @MockitoBean private RefreshTokenService refreshTokenService;
+    @MockitoBean private CookieHelper cookieHelper;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private AuthResponseDto successResponse;
@@ -72,8 +77,15 @@ public class AuthControllerTest {
         AuthRequestDto loginRequest = new AuthRequestDto("enes@test.com", "password123");
         LoginResponseDto expectedResponse = new LoginResponseDto("jwt-token", "jwt-refresh","User successfully login");
 
+        ResponseCookie dummyRefreshCookie = ResponseCookie.from("refreshToken", "jwt-refresh").build();
+        ResponseCookie dummyFlagCookie = ResponseCookie.from("logged_in", "true").build();
+
         // Act
         when(authenticationService.login(any(AuthRequestDto.class))).thenReturn(expectedResponse);
+
+        when(cookieHelper.generateRefreshTokenCookie(any(String.class))).thenReturn(dummyRefreshCookie);
+        when(cookieHelper.generateLoggedInFlagCookie(true)).thenReturn(dummyFlagCookie);
+
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
@@ -108,6 +120,19 @@ public class AuthControllerTest {
     @DisplayName("Logout - Should revoke token and clear cookies")
     void logout_revokeTokenAndClearCookies() throws Exception {
         String existingToken = "token";
+
+        ResponseCookie cleanRefreshCookie = ResponseCookie.from("refreshToken", "")
+                .path("/")
+                .maxAge(0)
+                .build();
+        ResponseCookie cleanFlagCookie = ResponseCookie.from("logged_in", "")
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        when(cookieHelper.getCleanRefreshTokenCookie()).thenReturn(cleanRefreshCookie);
+        when(cookieHelper.generateLoggedInFlagCookie(false)).thenReturn(cleanFlagCookie);
+
         mockMvc.perform(post("/api/auth/logout")
                 .cookie(new Cookie("refreshToken",existingToken)))
                 .andExpect(status().isOk())
@@ -145,15 +170,15 @@ public class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("Refresh - Should return 403 when token is revoked")
-    void refresh_returns403_whenTokenRevoked() throws Exception {
+    @DisplayName("Refresh - Should return 401 when token is revoked")
+    void refresh_returns401_whenTokenRevoked() throws Exception {
         // Arrange
         when(authenticationService.refresh(anyString()))
                 .thenThrow(new TokenRevokedException("Token revoked"));
         // Act & Assert
         mockMvc.perform(post("/api/auth/refresh")
                         .cookie(new Cookie("refreshToken", "revoked-token")))
-                .andExpect(status().isForbidden())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("Token revoked"));
     }
 
