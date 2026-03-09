@@ -1,5 +1,8 @@
 package com.example.votify_meet.common.exception;
 
+import com.example.votify_meet.auth.domain.exception.TokenExpiredException;
+import com.example.votify_meet.auth.domain.exception.TokenNotFoundException;
+import com.example.votify_meet.auth.domain.exception.TokenRevokedException;
 import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
 import com.example.votify_meet.options.domain.exception.UnauthorizedException;
@@ -24,7 +27,8 @@ public class GlobalExceptionHandler {
             UserNotFoundException.class,
             EventNotFoundException.class,
             OptionNotFoundException.class,
-            VoteNotFoundException.class})
+            VoteNotFoundException.class,
+            TokenNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleResourceNotFoundExceptions(RuntimeException ex) {
         return Map.of("error", ex.getMessage());
@@ -68,7 +72,6 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Map<String, String> handleAccessDeniedException(
             AccessDeniedException ex) {
-
         return Map.of("error", ex.getMessage());
     }
 }
