@@ -1,8 +1,9 @@
 package com.example.votify_meet.auth.api.controller;
 
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
+import com.example.votify_meet.auth.api.dto.RegisterResponseDto;
+import com.example.votify_meet.auth.api.dto.TokenResponseDto;
 import com.example.votify_meet.auth.api.dto.AuthResponseDto;
-import com.example.votify_meet.auth.api.dto.LoginResponseDto;
 import com.example.votify_meet.auth.api.util.CookieHelper;
 import com.example.votify_meet.auth.service.AuthenticationService;
 import com.example.votify_meet.users.api.dto.UsersRequestDto;
@@ -26,30 +27,30 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponseDto register(
+    public RegisterResponseDto register(
             @Valid @RequestBody UsersRequestDto request){
         return authenticationService.register(request);
 
     }
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<AuthResponseDto> authenticate(
+    public ResponseEntity<TokenResponseDto> authenticate(
             @RequestBody AuthRequestDto request,
             HttpServletResponse response
     ){
-          LoginResponseDto loginResponse = authenticationService.login(request);
+          AuthResponseDto loginResponse = authenticationService.login(request);
           ResponseCookie refreshCookie = cookieHelper.generateRefreshTokenCookie(loginResponse.refreshToken());
           ResponseCookie loggedInFlag = cookieHelper.generateLoggedInFlagCookie(true);
 
           return ResponseEntity.ok()
                   .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                   .header(HttpHeaders.SET_COOKIE, loggedInFlag.toString())
-                  .body(new AuthResponseDto(loginResponse.accessToken(), loginResponse.message()));
+                  .body(new TokenResponseDto(loginResponse.accessToken(), loginResponse.message()));
     }
 
     @PostMapping("/refresh")
     @ResponseStatus(HttpStatus.OK)
-    public AuthResponseDto refresh(@CookieValue("refreshToken") String refreshToken){
+    public TokenResponseDto refresh(@CookieValue("refreshToken") String refreshToken){
        return authenticationService.refresh(refreshToken);
     }
 

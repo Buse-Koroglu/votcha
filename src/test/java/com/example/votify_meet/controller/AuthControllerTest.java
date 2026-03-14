@@ -1,9 +1,10 @@
 package com.example.votify_meet.controller;
 
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
-import com.example.votify_meet.auth.api.dto.AuthResponseDto;
+import com.example.votify_meet.auth.api.dto.RegisterResponseDto;
+import com.example.votify_meet.auth.api.dto.TokenResponseDto;
 import com.example.votify_meet.auth.api.controller.AuthenticationController;
-import com.example.votify_meet.auth.api.dto.LoginResponseDto;
+import com.example.votify_meet.auth.api.dto.AuthResponseDto;
 import com.example.votify_meet.auth.api.util.CookieHelper;
 import com.example.votify_meet.auth.domain.exception.TokenExpiredException;
 import com.example.votify_meet.auth.domain.exception.TokenNotFoundException;
@@ -26,8 +27,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -46,11 +45,11 @@ public class AuthControllerTest {
     @MockitoBean private CookieHelper cookieHelper;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private AuthResponseDto successResponse;
+    private RegisterResponseDto successRegisterResponse;
 
     @BeforeEach
     public void setup() {
-        successResponse = new AuthResponseDto("jwt-token", "Operation successful");
+        successRegisterResponse = new RegisterResponseDto("Operation successful");
     }
 
     @Test
@@ -58,7 +57,7 @@ public class AuthControllerTest {
     void register_returns201_whenValidRequest() throws Exception {
         // Arrange
         UsersRequestDto request = new UsersRequestDto("Enes", "Test", "enes@test.com", "password123");
-        when(authenticationService.register(any(UsersRequestDto.class))).thenReturn(successResponse);
+        when(authenticationService.register(any(UsersRequestDto.class))).thenReturn(successRegisterResponse);
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/register")
@@ -66,7 +65,6 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                         .andExpect(status().isCreated())
-                        .andExpect(jsonPath("$.token").value("jwt-token"))
                         .andExpect(jsonPath("$.message").value("Operation successful"));
     }
 
@@ -75,10 +73,16 @@ public class AuthControllerTest {
     void login_returns200_whenCredentialsAreValid() throws Exception {
         // Arrange
         AuthRequestDto loginRequest = new AuthRequestDto("enes@test.com", "password123");
-        LoginResponseDto expectedResponse = new LoginResponseDto("jwt-token", "jwt-refresh","User successfully login");
+        AuthResponseDto expectedResponse = new AuthResponseDto("jwt-token", "jwt-refresh","User successfully login");
 
-        ResponseCookie dummyRefreshCookie = ResponseCookie.from("refreshToken", "jwt-refresh").build();
-        ResponseCookie dummyFlagCookie = ResponseCookie.from("logged_in", "true").build();
+        ResponseCookie dummyRefreshCookie = ResponseCookie.from("refreshToken", "jwt-refresh")
+                .httpOnly(true)
+                .path("/")
+                .build();
+        ResponseCookie dummyFlagCookie = ResponseCookie.from("logged_in", "true")
+                .httpOnly(false)
+                .path("/")
+                .build();
 
         // Act
         when(authenticationService.login(any(AuthRequestDto.class))).thenReturn(expectedResponse);
@@ -92,7 +96,10 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("jwt-token"))
+                .andExpect(cookie().exists("refreshToken"))
+                .andExpect(cookie().value("refreshToken", "jwt-refresh"))
+                .andExpect(cookie().httpOnly("refreshToken", true))
+                .andExpect(jsonPath("$.accessToken").value("jwt-token"))
                 .andExpect(jsonPath("$.message").value("User successfully login"));
 
         // Assert
@@ -104,7 +111,7 @@ public class AuthControllerTest {
     void refresh_returnsNewToken_whenCookieIsValid() throws Exception {
         // Arrange
         String validRefreshToken = "refresh-token";
-        AuthResponseDto expectedResponse = new AuthResponseDto("access-token", "Access token refreshed");
+        TokenResponseDto expectedResponse = new TokenResponseDto("access-token", "Access token refreshed");
 
         when(authenticationService.refresh(validRefreshToken)).thenReturn(expectedResponse);
 
@@ -112,7 +119,7 @@ public class AuthControllerTest {
         mockMvc.perform(post("/api/auth/refresh")
                         .cookie(new Cookie("refreshToken", validRefreshToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("access-token"))
+                .andExpect(jsonPath("$.accessToken").value("access-token"))
                 .andExpect(jsonPath("$.message").value("Access token refreshed"));
     }
 

@@ -1,8 +1,9 @@
 package com.example.votify_meet.auth.service;
 
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
+import com.example.votify_meet.auth.api.dto.RegisterResponseDto;
+import com.example.votify_meet.auth.api.dto.TokenResponseDto;
 import com.example.votify_meet.auth.api.dto.AuthResponseDto;
-import com.example.votify_meet.auth.api.dto.LoginResponseDto;
 import com.example.votify_meet.auth.domain.model.RefreshToken;
 import com.example.votify_meet.config.JwtService;
 import com.example.votify_meet.users.api.dto.UsersRequestDto;
@@ -27,7 +28,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
 
-    public AuthResponseDto register(UsersRequestDto request){
+    public RegisterResponseDto register(UsersRequestDto request){
         usersRepo.findByEmail(request.email()).ifPresent(user -> {
             throw new UserIsAlreadyExistsException(String.format("User with email %s already exists", request.email()));
         });
@@ -35,11 +36,9 @@ public class AuthenticationService {
         Users user = usersMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         usersRepo.save(user);
-
-        String jwtToken = jwtService.generateToken(user); // for access token
-        return new AuthResponseDto(jwtToken, "User successfully registered");
+        return new RegisterResponseDto("User successfully registered");
     }
-    public LoginResponseDto login(AuthRequestDto request){
+    public AuthResponseDto login(AuthRequestDto request){
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
@@ -51,13 +50,13 @@ public class AuthenticationService {
                 .orElseThrow( () -> new UserNotFoundException(String.format("User with email %s not found", request.email())));
         String jwtToken = jwtService.generateToken(user); // for access token
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user); // for refresh token
-        return new LoginResponseDto(jwtToken, refreshToken.getToken(), "User successfully login");
+        return new AuthResponseDto(jwtToken, refreshToken.getToken(), "User successfully login");
     }
 
-    public AuthResponseDto refresh(String refreshToken) {
+    public TokenResponseDto refresh(String refreshToken) {
         var token = refreshTokenService.validateRefreshToken(refreshToken);
         String accessToken = jwtService.generateToken(token.getUser());
-        return new AuthResponseDto(accessToken, "Access token refreshed");
+        return new TokenResponseDto(accessToken, "Access token refreshed");
     }
 
     public void logout(String refreshToken) {
