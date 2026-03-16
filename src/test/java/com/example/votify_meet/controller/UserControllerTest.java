@@ -82,10 +82,10 @@ public class UserControllerTest {
     @DisplayName("Retrieving Non-Existing user - 404 Not Found should return.")
     void getUser_returns404_whenUserNotExist() throws Exception {
         // Act
-        when(usersService.getUser("2")).thenThrow(new UserNotFoundException("User Not Found"));
+        when(usersService.getUser(USER_ID)).thenThrow(new UserNotFoundException("User Not Found"));
 
         // Assert
-        mockMvc.perform(get("/api/users/{id}", "2")
+        mockMvc.perform(get("/api/users/me")
                         .with(csrf())
                         .with(user(mockUser))
                 )
