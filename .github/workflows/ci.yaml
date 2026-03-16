@@ -55,6 +55,5 @@ jobs:
 
     - name: Clear or Initialize logs
       run: |
-        mkdir -p ./logs
-        touch ./logs/app-log.json
-        printf "" > ./logs/app-log.json
+        mkdir -p $GITHUB_WORKSPACE/logs
+        echo "" > $GITHUB_WORKSPACE/logs/app-log.json
