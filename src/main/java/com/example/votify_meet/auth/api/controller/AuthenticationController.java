@@ -10,7 +10,9 @@ import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,30 +32,19 @@ public class AuthenticationController {
 
     }
     @PostMapping("/login")
-<<<<<<< HEAD
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<TokenResponseDto> authenticate(
-            @RequestBody AuthRequestDto request,
-            HttpServletResponse response
-    ){
-          AuthResponseDto loginResponse = authenticationService.login(request);
-          ResponseCookie refreshCookie = cookieHelper.generateRefreshTokenCookie(loginResponse.refreshToken());
-          ResponseCookie loggedInFlag = cookieHelper.generateLoggedInFlagCookie(true);
-
-          return ResponseEntity.ok()
-                  .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                  .header(HttpHeaders.SET_COOKIE, loggedInFlag.toString())
-                  .body(new TokenResponseDto(loginResponse.accessToken(), loginResponse.message()));
-=======
-    public ResponseEntity<AuthResponseDto> authenticate(
             @RequestBody AuthRequestDto request
-    ){
-          LoginResponseDto loginResponse = authenticationService.login(request);
+    ) {
+        AuthResponseDto loginResponse = authenticationService.login(request);
+        ResponseCookie refreshCookie = cookieHelper.generateRefreshTokenCookie(loginResponse.refreshToken());
+        ResponseCookie loggedInFlag = cookieHelper.generateLoggedInFlagCookie(true);
 
-          return ResponseEntity.ok()
-                  .headers(cookieHelper.getAuthHeaders(loginResponse.refreshToken()))
-                  .body(new AuthResponseDto(loginResponse.accessToken(), loginResponse.message()));
->>>>>>> a417ce1 (setup: initial elk cluster with filebeat logging pipeline)
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, loggedInFlag.toString())
+                .body(new TokenResponseDto(loginResponse.accessToken(), loginResponse.message()));
+
     }
 
     @PostMapping("/refresh")
