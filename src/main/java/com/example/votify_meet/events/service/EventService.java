@@ -42,7 +42,8 @@ public class EventService {
     @Transactional
     public EventResponseDto createEvent(EventRequestDto eventRequestDto, String userId) {
         Users user = usersRepo.findById(userId).orElseThrow(() -> new UserNotFoundException(String.format("User with id %s not found", userId)));
-        return eventMapper.toResponse(eventsRepo.saveAndFlush(eventMapper.toEntity(eventRequestDto, user)), Collections.emptyList());
+        Event savedEvent = eventsRepo.saveAndFlush(eventMapper.toEntity(eventRequestDto, user));
+        return eventMapper.toResponse(savedEvent, savedEvent.getOptions());
     }
 
     public EventResponseDto getUserEvent(Users user, String eventId) {

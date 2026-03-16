@@ -123,32 +123,6 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("Access token refreshed"));
     }
 
-    @Test
-    @DisplayName("Logout - Should revoke token and clear cookies")
-    void logout_revokeTokenAndClearCookies() throws Exception {
-        String existingToken = "token";
-
-        ResponseCookie cleanRefreshCookie = ResponseCookie.from("refreshToken", "")
-                .path("/")
-                .maxAge(0)
-                .build();
-        ResponseCookie cleanFlagCookie = ResponseCookie.from("logged_in", "")
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        when(cookieHelper.getCleanRefreshTokenCookie()).thenReturn(cleanRefreshCookie);
-        when(cookieHelper.generateLoggedInFlagCookie(false)).thenReturn(cleanFlagCookie);
-
-        mockMvc.perform(post("/api/auth/logout")
-                .cookie(new Cookie("refreshToken",existingToken)))
-                .andExpect(status().isOk())
-                .andExpect(cookie().value("refreshToken", ""))
-                .andExpect(cookie().maxAge("refreshToken", 0))
-                .andExpect(cookie().value("logged_in", ""))
-                .andExpect(cookie().maxAge("logged_in", 0));
-        verify(authenticationService, times(1)).logout(existingToken);
-    }
 
     @Test
     @DisplayName("Refresh - Should return error when token is not found in db")

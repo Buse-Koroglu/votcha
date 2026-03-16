@@ -14,6 +14,8 @@ services:
         condition: service_healthy
     networks:
       - votify_meet_network
+    volumes:
+      - ./logs:/app/logs
   db:
     container_name: votify_meet_db
     image: postgres:15-alpine

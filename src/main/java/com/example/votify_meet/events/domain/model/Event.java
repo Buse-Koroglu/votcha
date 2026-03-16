@@ -1,5 +1,6 @@
 package com.example.votify_meet.events.domain.model;
 
+import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.users.domain.model.Users;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,6 +10,8 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
+import java.util.List;
+;
 
 @Builder
 @NoArgsConstructor
@@ -36,6 +39,9 @@ public class Event {
     @Column(updatable = false)
     private Instant createdAt;
 
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Option> options;
+
     private Instant updatedAt;
 
 
@@ -43,5 +49,11 @@ public class Event {
     @JoinColumn(name = "creator_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Users creator;
+
+    public void addOptions(List<Option> newOptions){
+        this.options = newOptions;
+        newOptions.forEach(option -> option.setEvent(this));
+
+    }
 
 }

@@ -1,0 +1,16 @@
+filebeat.inputs:
+  - type: filestream
+    id: wedorgo-votify_meet-logs
+    paths:
+      - "/var/log/wedorgo/*.json"
+      - "/var/log/wedorgo/archived/*.json"
+    parsers:
+      - ndjson:
+          target: ""
+          add_error_key: true
+output.logstash:
+  hosts: ["logstash:5044"]
+  # ssl.certificate_authorities: ["/usr/share/filebeat/cers/ca.crt"]
+  # ssl.certificate: "/usr/share/filebeat/certs/filebeat.crt"
+  # ssl.key: "/usr/share/filebeat/certs/filebeat.key"
+logging.level: info

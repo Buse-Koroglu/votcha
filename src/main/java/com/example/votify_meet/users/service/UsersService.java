@@ -1,10 +1,8 @@
 package com.example.votify_meet.users.service;
 
 import com.example.votify_meet.users.api.dto.UpdateUsersRequestDto;
-import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.api.mapper.UsersMapper;
-import com.example.votify_meet.users.domain.exception.UserIsAlreadyExistsException;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
@@ -19,13 +17,6 @@ public class UsersService {
     public UsersService(UsersRepo usersRepo, UsersMapper usersMapper) {
         this.usersRepo = usersRepo;
         this.usersMapper = usersMapper;
-    }
-
-    public UsersResponseDto createUser(UsersRequestDto request) {
-        usersRepo.findByEmail(request.email()).ifPresent(user -> {
-            throw new UserIsAlreadyExistsException(String.format("User with email %s already exists", request.email()));
-        });
-        return usersMapper.toResponse(usersRepo.save(usersMapper.toEntity(request)));
     }
 
     public UsersResponseDto getUser(String id) {

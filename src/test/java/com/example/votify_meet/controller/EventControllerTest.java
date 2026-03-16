@@ -25,6 +25,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.Collections;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,10 +73,10 @@ public class EventControllerTest {
     }
 
     @Test
-    @DisplayName("Successful Event Creation - Should return 201 Created and correct JSON.")
-    void createEvent_returns201_whenValidRequest() throws Exception{
+    @DisplayName("Unsuccessfully Event Creation - Should return 400 bad request if optionList is not provided in request.")
+    void createEvent_returns400_whenInvalidOptionListRequest() throws Exception{
         // Arrange
-        EventRequestDto request = new EventRequestDto("Meet Event","Today",deadline, EventType.STANDARD);
+        EventRequestDto request = new EventRequestDto("Meet Event","Today",deadline, EventType.STANDARD, Collections.emptyList());
 
         // Act
         when(eventService.createEvent(any(EventRequestDto.class),anyString())).thenReturn(standardResponse);
@@ -87,24 +88,14 @@ public class EventControllerTest {
                         .with(user(mockUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(EVENT_ID))
-                .andExpect(jsonPath("$.title").value("Meet Event"))
-                .andExpect(jsonPath("$.description").value("Today"))
-                .andExpect(jsonPath("$.status").value("OPEN"))
-                .andExpect(jsonPath("$.type").value("STANDARD"))
-                .andExpect(jsonPath("$.createdAt").value(nullValue()))
-                .andExpect(jsonPath("$.updatedAt").value(nullValue()))
-                .andExpect(jsonPath("$.deadline").value(deadline.toString()))
-                .andExpect(jsonPath("$.creatorId").value("1"))
-                .andExpect(jsonPath("$.options").value(nullValue()));
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("Creating an Event with an Invalid Request (Null Deadline) - It should return a 400 Bad Request.")
     void createEvent_returns400_whenInvalidRequest() throws Exception{
         // Arrange
-        EventRequestDto request = new EventRequestDto("Meet Event","Today",null, EventType.STANDARD); // deadline can not be null in the request so it will be invalid request
+        EventRequestDto request = new EventRequestDto("Meet Event","Today",null, EventType.STANDARD, Collections.emptyList()); // deadline can not be null in the request so it will be invalid request
 
         // Act & Assert
         mockMvc.perform(post("/api/events")

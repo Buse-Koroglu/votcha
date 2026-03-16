@@ -7,6 +7,7 @@ import com.example.votify_meet.auth.domain.model.RefreshToken;
 import com.example.votify_meet.auth.domain.repository.RefreshTokenRepository;
 import com.example.votify_meet.users.domain.model.Users;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -17,6 +18,9 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class RefreshTokenService {
 
+    @Value("${jwt.refresh-token.expiration-in-seconds}")
+    private long refreshTokenExpiration;
+
     private final RefreshTokenRepository refreshTokenRepository;
 
     public RefreshToken createRefreshToken(Users user){
@@ -24,7 +28,7 @@ public class RefreshTokenService {
             RefreshToken refreshToken = RefreshToken.builder()
                     .token(token)
                     .user(user)
-                    .expiryDate(Instant.now().plusSeconds(60*60*24*7))
+                    .expiryDate(Instant.now().plusSeconds(refreshTokenExpiration))
                     .isRevoked(false)
                     .build();
             return refreshTokenRepository.save(refreshToken);

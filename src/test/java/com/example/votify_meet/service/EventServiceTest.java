@@ -8,6 +8,9 @@ import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.events.domain.model.EventType;
 import com.example.votify_meet.events.domain.repository.EventsRepo;
 import com.example.votify_meet.events.service.EventService;
+import com.example.votify_meet.options.api.dto.OptionRequestDto;
+import com.example.votify_meet.options.api.dto.OptionResponseDto;
+import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.options.domain.repository.OptionRepository;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.users.domain.model.Role;
@@ -21,7 +24,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,27 +56,42 @@ public class EventServiceTest {
     }
 
     @Test
-    @DisplayName("GIVEN valid request WHEN create event THEN return event with empty option list")
-    void givenValidRequest_whenCreateEvent_thenReturnEventWithEmptyOptions(){
+    @DisplayName("GIVEN valid request WHEN create event THEN return event with option list")
+    void givenValidRequest_whenCreateEvent_thenReturnEventWithOptions(){
         // Arrange
         String userId = "u-123";
-        EventRequestDto request = new EventRequestDto("Meet", "Desc", null, null);
-        Users user = Users.builder().id(userId).build();
-        Event savedEvent = Event.builder().id("e-123").title("Meet").creator(user).build();
 
-        EventResponseDto expectedResponse = new EventResponseDto("e-123", "Meet", "Desc", null, null, null, null, null, userId, Collections.emptyList());
+
+        List<OptionRequestDto> optRequests = Arrays.asList(OptionRequestDto.builder()
+                .content("opt-1").build()
+                , OptionRequestDto.builder()
+                        .content("opt-2").build());
+        List<OptionResponseDto> responses = Arrays.asList(
+                OptionResponseDto.builder().content("opt-1").build(),
+                OptionResponseDto.builder().content("opt-2").build()
+        );
+        List<Option> opts = Arrays.asList(
+                Option.builder().content("opt-1").build(),
+                Option.builder().content("opt-2").build()
+        );
+
+        EventRequestDto request = new EventRequestDto("Meet", "Desc", null, null, optRequests);
+        Users user = Users.builder().id(userId).build();
+        Event savedEvent = Event.builder().id("e-123").title("Meet").creator(user).options(opts).build();
+
+        EventResponseDto expectedResponse = new EventResponseDto("e-123", "Meet", "Desc", null, null, null, null, null, userId, responses);
 
         given(usersRepo.findById(userId)).willReturn(Optional.of(user));
         given(eventMapper.toEntity(request, user)).willReturn(savedEvent);
         given(eventsRepo.saveAndFlush(savedEvent)).willReturn(savedEvent);
 
-        given(eventMapper.toResponse(eq(savedEvent), eq(Collections.emptyList()))).willReturn(expectedResponse);
+        given(eventMapper.toResponse(eq(savedEvent), eq(opts))).willReturn(expectedResponse);
 
         // Act
         EventResponseDto actualResponse = eventService.createEvent(request, userId);
 
         // Assert
-        assertThat(actualResponse.options()).isEmpty();
+        assertThat(actualResponse.options()).isEqualTo(expectedResponse.options());
         assertThat(actualResponse.title()).isEqualTo("Meet");
     }
 
@@ -134,7 +154,7 @@ public class EventServiceTest {
     void givenInvalidUser_whenCreateEvent_thenThrowException() {
         // Arrange
         String invalidUserId = "ghost-user";
-        EventRequestDto request = new EventRequestDto("Parti", "Açıklama", null, null);
+        EventRequestDto request = new EventRequestDto("Parti", "Açıklama", null, null, Collections.emptyList());
 
         given(usersRepo.findById(invalidUserId)).willReturn(Optional.empty());
 

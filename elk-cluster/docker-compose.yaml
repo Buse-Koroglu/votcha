@@ -1,0 +1,37 @@
+services:
+  setup:
+    extends:
+      file: ./config/setup.yaml
+      service: setup
+  elastic:
+    extends:
+      file: ./services/elastic.yaml
+      service: elastic
+  kibana:
+    extends:
+      file: ./services/kibana.yaml
+      service: kibana
+  logstash:
+    extends:
+      file: ./services/logstash.yaml
+      service: logstash
+  filebeat:
+    extends:
+      file: ./services/filebeat.yaml
+      service: filebeat
+volumes:
+  certs:
+    driver: local
+  elastic_data:
+    driver: local
+  kibana_data:
+    driver: local
+  logstash_data:
+    driver: local
+
+networks:
+  default:
+    name: elastic
+    external: false
+
+

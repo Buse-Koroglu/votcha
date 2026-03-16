@@ -8,12 +8,9 @@ import com.example.votify_meet.auth.api.util.CookieHelper;
 import com.example.votify_meet.auth.service.AuthenticationService;
 import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +30,7 @@ public class AuthenticationController {
 
     }
     @PostMapping("/login")
+<<<<<<< HEAD
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<TokenResponseDto> authenticate(
             @RequestBody AuthRequestDto request,
@@ -46,6 +44,16 @@ public class AuthenticationController {
                   .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                   .header(HttpHeaders.SET_COOKIE, loggedInFlag.toString())
                   .body(new TokenResponseDto(loginResponse.accessToken(), loginResponse.message()));
+=======
+    public ResponseEntity<AuthResponseDto> authenticate(
+            @RequestBody AuthRequestDto request
+    ){
+          LoginResponseDto loginResponse = authenticationService.login(request);
+
+          return ResponseEntity.ok()
+                  .headers(cookieHelper.getAuthHeaders(loginResponse.refreshToken()))
+                  .body(new AuthResponseDto(loginResponse.accessToken(), loginResponse.message()));
+>>>>>>> a417ce1 (setup: initial elk cluster with filebeat logging pipeline)
     }
 
     @PostMapping("/refresh")
@@ -55,15 +63,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Void> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
         authenticationService.logout(refreshToken);
-        ResponseCookie refreshCookie = cookieHelper.getCleanRefreshTokenCookie();
-        ResponseCookie loggedInFlag = cookieHelper.generateLoggedInFlagCookie(false);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, loggedInFlag.toString())
+                .headers(cookieHelper.getLogoutHeaders())
                 .build();
     }
 }

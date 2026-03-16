@@ -1,0 +1,41 @@
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./logs/app-log.json</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>
+                ./logs/app-log.%d{yyyy-MM-dd}.%i.json
+            </fileNamePattern>
+            <maxFileSize>10MB</maxFileSize> <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeContext>false</includeContext>
+            <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampPattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.example.votify_meet" level="INFO" additivity="false">
+        <appender-ref ref="JSON_FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+    <logger name="org.hibernate.SQL" level="ERROR" />
+    <logger name="org.hibernate.orm.jdbc.bind" level="ERROR" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="ERROR" />
+
+    <logger name="org.springframework" level="WARN" />
+    <logger name="org.apache.catalina" level="WARN" />
+    <logger name="org.apache.tomcat" level="WARN" />
+
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="JSON_FILE"/>
+    </root>
+</configuration>

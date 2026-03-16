@@ -1,5 +1,6 @@
 package com.example.votify_meet.auth.service;
 
+import com.example.votify_meet.aop.BusinessAction;
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
 import com.example.votify_meet.auth.api.dto.RegisterResponseDto;
 import com.example.votify_meet.auth.api.dto.TokenResponseDto;
@@ -38,7 +39,9 @@ public class AuthenticationService {
         usersRepo.save(user);
         return new RegisterResponseDto("User successfully registered");
     }
-    public AuthResponseDto login(AuthRequestDto request){
+
+    @BusinessAction(action = "USER_LOGIN")
+        public AuthResponseDto login(AuthRequestDto request){
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),

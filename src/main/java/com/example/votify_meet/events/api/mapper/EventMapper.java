@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -44,7 +45,8 @@ public class EventMapper {
     }
 
     public Event toEntity(EventRequestDto request, Users user) {
-        return Event.builder()
+        // Create the event with an empty option
+        Event event = Event.builder()
                 .title(request.title())
                 .status(Status.OPEN)
                 .description(request.description())
@@ -52,6 +54,16 @@ public class EventMapper {
                 .type(request.eventType())
                 .creator(user)
                 .build();
+
+        // Create the options
+        List<Option> eventOptions = request.options().stream()
+                .map(optDto -> Option.builder()
+                        .content(optDto.content())
+                        .build())
+                .toList();
+        // Set the options to the related event then return
+        event.addOptions(eventOptions);
+        return event;
     }
 
     // Trim the blanks if a user enters spaces

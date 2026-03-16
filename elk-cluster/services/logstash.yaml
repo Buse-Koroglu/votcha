@@ -1,0 +1,21 @@
+services:
+  logstash:
+    image: logstash:${STACK_VERSION}
+    container_name: logstash
+    ports:
+      - "5044:5044" # Open the gate to filebeat come in
+    volumes:
+      - ../config/logstash/:/usr/share/logstash/pipeline
+      - certs:/usr/share/logstash/config/certs
+    command: logstash -f /usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      elastic:
+        condition: service_healthy
+      setup:
+        condition: service_healthy
+    environment:
+      - xpack.monitoring.enabled=false
+      - ELASTIC_USER=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_HOSTS=https://elastic:9200
+

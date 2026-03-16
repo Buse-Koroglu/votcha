@@ -1,0 +1,12 @@
+services:
+  filebeat:
+    image: elastic/filebeat:${STACK_VERSION}
+    container_name: votify_meet-filebeat
+    command: filebeat -e --strict.perms=false
+    user: root
+    volumes:
+      - "../../logs:/var/log/wedorgo:ro"
+      - "../config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
+    depends_on:
+      logstash:
+        condition: service_started

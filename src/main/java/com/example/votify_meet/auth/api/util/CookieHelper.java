@@ -1,6 +1,7 @@
 package com.example.votify_meet.auth.api.util;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ public class CookieHelper {
 
     @Value("${app.security.cookie.secure}")
     private boolean isSecure;
+
 
     public ResponseCookie generateRefreshTokenCookie(String token) {
         return ResponseCookie.from("refreshToken", token)
@@ -40,5 +42,17 @@ public class CookieHelper {
                 .sameSite("Lax")
                 .maxAge(0)
                 .build();
+    }
+    public HttpHeaders getAuthHeaders(String refreshToken){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, generateRefreshTokenCookie(refreshToken).toString());
+        headers.add(HttpHeaders.SET_COOKIE, generateLoggedInFlagCookie(true).toString());
+        return headers;
+    }
+    public HttpHeaders getLogoutHeaders(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, getCleanRefreshTokenCookie().toString());
+        headers.add(HttpHeaders.SET_COOKIE, generateLoggedInFlagCookie(false).toString());
+        return headers;
     }
 }
