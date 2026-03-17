@@ -84,6 +84,27 @@ public class EventMapper {
         if(description != null){
             entity.setDescription(description);
         }
+        // for update deadline
+        if(request.deadline() != null) {
+            entity.setDeadline(request.deadline());
+        }
+        // for update option list
+        if (request.options() != null && !request.options().isEmpty()) {
+            entity.getOptions().clear();
+
+            List<Option> newOptions = request.options().stream()
+                    .map(optDto -> {
+                        Option option = Option.builder()
+                                .content(optDto.content())
+                                .build();
+                        option.setEvent(entity);
+                        return option;
+                    })
+                    .toList();
+
+            entity.getOptions().addAll(newOptions);
+        }
+
         entity.setUpdatedAt(Instant.now());
 
     }

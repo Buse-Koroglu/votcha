@@ -10,6 +10,8 @@ import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.events.domain.model.EventType;
 import com.example.votify_meet.events.domain.model.Status;
 import com.example.votify_meet.events.service.EventService;
+import com.example.votify_meet.options.api.dto.OptionRequestDto;
+import com.example.votify_meet.options.api.dto.OptionResponseDto;
 import com.example.votify_meet.users.domain.model.Role;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.service.UsersService;
@@ -26,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,13 +58,20 @@ public class EventControllerTest {
     private Instant deadline;
     private EventResponseDto standardResponse;
     private  Users mockUser;
-
+    private List<OptionRequestDto> patchOptions;
     @BeforeEach
     public void setup() {
         deadline =Instant.parse("2030-03-04T19:42:11.234Z");
+        patchOptions = List.of(
+                new OptionRequestDto("1"),
+                new OptionRequestDto("2")
+        );
         standardResponse = new EventResponseDto(
                 EVENT_ID, "Meet Event","Today",Status.OPEN,
-                EventType.STANDARD, null, null, deadline, USER_ID, null
+                EventType.STANDARD, null, null, deadline, USER_ID, List.of(
+                new OptionResponseDto("opt1", "Option 1", null, null),
+                new OptionResponseDto("opt2", "Option 2", null, null)
+        )
         );
         mockUser = Users.builder()
                 .id(USER_ID)
@@ -169,7 +179,7 @@ public class EventControllerTest {
     @DisplayName("Partial Update (Patch) - Should return 200 OK and updated data.")
     void patchEvent_returns200_whenEventPatched() throws Exception{
         // Arrange
-        UpdateEventRequestDto request = new UpdateEventRequestDto("Meet Event","Today",deadline);
+        UpdateEventRequestDto request = new UpdateEventRequestDto("Meet Event","Today",deadline,patchOptions);
 
         // Act
         when(eventService.updateUserEvents(mockUser, EVENT_ID,request)).thenReturn(standardResponse);
@@ -190,7 +200,7 @@ public class EventControllerTest {
                 .andExpect(jsonPath("$.updatedAt").value(nullValue()))
                 .andExpect(jsonPath("$.deadline").value(deadline.toString()))
                 .andExpect(jsonPath("$.creatorId").value("1"))
-                .andExpect(jsonPath("$.options").value(nullValue()));
+                .andExpect(jsonPath("$.options").isArray());
     }
 
 
@@ -198,7 +208,7 @@ public class EventControllerTest {
     @DisplayName("Invalid Patch Request - Should return 400 bad request.")
     void patchEvent_returns400_whenInvalidRequest() throws Exception{
         // Arrange
-        UpdateEventRequestDto request = new UpdateEventRequestDto("","",null); // for the update deadline can be null but title and description invalid now.
+        UpdateEventRequestDto request = new UpdateEventRequestDto("","",null, List.of()); // for the update deadline can be null but title and description invalid now.
 
         // Act & Assert
         mockMvc.perform(patch("/api/events/{id}",EVENT_ID)
