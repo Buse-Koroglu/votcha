@@ -29,6 +29,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
 
+    @BusinessAction(action = "USER_REGISTERED", domain = "AUTH")
     public RegisterResponseDto register(UsersRequestDto request){
         usersRepo.findByEmail(request.email()).ifPresent(user -> {
             throw new UserIsAlreadyExistsException(String.format("User with email %s already exists", request.email()));
@@ -40,8 +41,8 @@ public class AuthenticationService {
         return new RegisterResponseDto("User successfully registered");
     }
 
-    @BusinessAction(action = "USER_LOGIN")
-        public AuthResponseDto login(AuthRequestDto request){
+    @BusinessAction(action = "USER_LOGIN", domain = "AUTH")
+    public AuthResponseDto login(AuthRequestDto request){
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),

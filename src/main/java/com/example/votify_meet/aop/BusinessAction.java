@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BusinessAction {
     String action(); // VOTE_CAST, EVENT_CREATED, AUTH_FAILURE
+    String domain() default "SYS";
 }

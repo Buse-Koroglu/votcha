@@ -1,6 +1,7 @@
 package com.example.votify_meet.aop;
 
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
+import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
@@ -50,34 +51,27 @@ public class LoggingAspect {
     // Business action logs
     @Around("@annotation(businessAction)")
     public Object logBusinessAction(ProceedingJoinPoint joinPoint, BusinessAction businessAction) throws Throwable {
-        String userIdentifier = "anonymousUser";
+        long start = System.currentTimeMillis();
 
-        // 1. ADIM: Spring Security'den çekmeyi dene (Eğer zaten login olmuşsa)
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
-            userIdentifier = auth.getName();
-        } else {
-            // 2. ADIM: Eğer login/register aşamasındaysa, metot parametrelerine bak
-            Object[] args = joinPoint.getArgs();
-            for (Object arg : args) {
-                if(arg instanceof AuthRequestDto dto) {
-                    userIdentifier = dto.email();
-                    break;
-                }
-            }
-        }
+        MDC.put("domain", businessAction.domain());
+        MDC.put("action", businessAction.action());
+
+        String userIdentifier = resolveUserIdentifier(joinPoint.getArgs());
+        MDC.put("user", userIdentifier);
+
 
         try {
-            MDC.put("user", userIdentifier);
-            MDC.put("action", businessAction.action());
+            Object result = joinPoint.proceed();
 
-            // Mesajı düzelttik: Artık sadece String basacak
-            logger.info("Executed Action: {}", businessAction.action());
+            recordLog(start, "SUCCESS", null);
 
-            return joinPoint.proceed();
-        } finally {
-            MDC.remove("user");
-            MDC.remove("action");
+            return result;
+        }catch (Throwable throwable){
+            recordLog(start, "FAIL", throwable.getMessage());
+            throw throwable;
+        }
+        finally {
+            removeFromMDC("domain", "user", "action", "duration", "status");
         }
     }
 
@@ -85,13 +79,53 @@ public class LoggingAspect {
     @Around("execution(* com.example.votify_meet.*.api.*.*(..))")
     public Object logPerformance(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
-        Object result = joinPoint.proceed();
-        long duration = System.currentTimeMillis() - start;
+        try {
+            return joinPoint.proceed();
+        } finally {
+            long duration = System.currentTimeMillis() - start;
+            MDC.put("duration", String.valueOf(duration));
+            logger.info("REST_API_CALL: {} | Duration: {}ms",
+                    joinPoint.getSignature().toShortString(), duration);
+            // DO NOT use MDC.clear() here. It will kill your traceId.
+            MDC.remove("duration");
+        }
+    }
 
+    private void recordLog(long startTime, String status, String error){
+        long duration = System.currentTimeMillis() - startTime;
         MDC.put("duration", String.valueOf(duration));
-        logger.info("Requests: {} executed in {} ms", joinPoint.getSignature().toShortString(), duration);
-        MDC.clear();
-        return result;
+        MDC.put("status", status);
+
+        if ("FAIL".equals(status)) {
+            logger.error("BUSINESS_ACTION_FAILED: {} | Duration: {}ms | Error: {}",
+                    MDC.get("action"), duration, error);
+        } else {
+            logger.info("BUSINESS_ACTION_SUCCESS: {} | Duration: {}ms",
+                    MDC.get("action"), duration);
+        }
+    }
+
+    public void removeFromMDC(String ... args){
+        for(String arg : args){
+            MDC.remove(arg);
+        }
+    }
+    private String resolveUserIdentifier(Object[] args){
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            return auth.getName();
+        }
+        for (Object arg : args) {
+            // Register
+            if(arg instanceof AuthRequestDto dto) {
+                return dto.email();
+            }
+            // Login
+            if(arg instanceof UsersRequestDto dto) {
+                return dto.email();
+            }
+        }
+        return "anonymousUser";
     }
 
 
