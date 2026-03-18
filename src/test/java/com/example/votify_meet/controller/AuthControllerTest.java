@@ -111,8 +111,13 @@ public class AuthControllerTest {
     void refresh_returnsNewToken_whenCookieIsValid() throws Exception {
         // Arrange
         String validRefreshToken = "refresh-token";
-        TokenResponseDto expectedResponse = new TokenResponseDto("access-token", "Access token refreshed");
+        TokenResponseDto expectedResponse = new TokenResponseDto("access-token", "refresh-token", "Access token refreshed");
 
+        when(cookieHelper.generateRefreshTokenCookie(anyString()))
+                .thenReturn(ResponseCookie.from("refreshToken", "refresh-token")
+                        .path("/")
+                        .httpOnly(true)
+                        .build());
         when(authenticationService.refresh(validRefreshToken)).thenReturn(expectedResponse);
 
         // Act & Assert
@@ -120,6 +125,7 @@ public class AuthControllerTest {
                         .cookie(new Cookie("refreshToken", validRefreshToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token"))
                 .andExpect(jsonPath("$.message").value("Access token refreshed"));
     }
 
