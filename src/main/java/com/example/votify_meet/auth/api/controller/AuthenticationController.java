@@ -43,14 +43,21 @@ public class AuthenticationController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, loggedInFlag.toString())
-                .body(new TokenResponseDto(loginResponse.accessToken(), loginResponse.message()));
+                .body(new TokenResponseDto(loginResponse.accessToken(), loginResponse.refreshToken(), loginResponse.message()));
 
     }
 
     @PostMapping("/refresh")
-    @ResponseStatus(HttpStatus.OK)
-    public TokenResponseDto refresh(@CookieValue("refreshToken") String refreshToken){
-       return authenticationService.refresh(refreshToken);
+    public ResponseEntity<TokenResponseDto> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken){
+        if(refreshToken == null || refreshToken.isBlank()){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        TokenResponseDto responseDto = authenticationService.refresh(refreshToken);
+
+        ResponseCookie refreshCookie = cookieHelper.generateRefreshTokenCookie(responseDto.refreshToken());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(responseDto);
     }
 
     @PostMapping("/logout")

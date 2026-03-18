@@ -6,6 +6,7 @@ import com.example.votify_meet.auth.domain.exception.TokenRevokedException;
 import com.example.votify_meet.auth.domain.model.RefreshToken;
 import com.example.votify_meet.auth.domain.repository.RefreshTokenRepository;
 import com.example.votify_meet.users.domain.model.Users;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,25 +25,30 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     public RefreshToken createRefreshToken(Users user){
-            String token = generateRefreshToken();
-            RefreshToken refreshToken = RefreshToken.builder()
-                    .token(token)
-                    .user(user)
-                    .expiryDate(Instant.now().plusSeconds(refreshTokenExpiration))
-                    .isRevoked(false)
-                    .build();
-            return refreshTokenRepository.save(refreshToken);
+        String token = generateRefreshToken();
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(token)
+                .user(user)
+                .expiryDate(Instant.now().plusSeconds(refreshTokenExpiration))
+                .isRevoked(false)
+                .build();
+        return refreshTokenRepository.save(refreshToken);
     }
 
-    public RefreshToken validateRefreshToken(String token){
+    @Transactional
+    public RefreshToken validateAndRotate(String token){
         RefreshToken refreshToken = refreshTokenRepository.findByToken(token).orElseThrow(() -> new RuntimeException("Invalid refresh token"));
         if(refreshToken.isRevoked()){
             throw new TokenRevokedException("Token revoked");
         }
-        if(refreshToken.getExpiryDate().isBefore(Instant.now())){
+        // delete from db if token is expired
+        if(isTokenExpired(refreshToken)){
+            refreshTokenRepository.delete(refreshToken);
             throw new TokenExpiredException("Token expired");
         }
-        return refreshToken;
+        // Rotation
+        refreshToken.setRevoked(true);
+        return refreshTokenRepository.save(refreshToken);
     }
 
     private String generateRefreshToken(){
@@ -51,6 +57,11 @@ public class RefreshTokenService {
         random.nextBytes(bytes);
 
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+
+    public boolean isTokenExpired(RefreshToken token){
+        return token.getExpiryDate().isBefore(Instant.now());
     }
 
     public void revokeRefreshToken(RefreshToken token){

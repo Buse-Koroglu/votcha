@@ -42,7 +42,7 @@ public class JwtService {
                 .setClaims(extraClaims) // We can set a role like role:admin if we want
                 .setSubject(userDetails.getUsername()) // Who owns the token (Email)
                 .setIssuedAt(new Date(System.currentTimeMillis())) // When did create?
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // Expire after 15 minutes (set this from app.properties)
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 *  10)) // Expire after 15 minutes (set this from app.properties)
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256) // Sign with HS256 Algorithm
                 .compact(); // to string
     }

@@ -58,9 +58,11 @@ public class AuthenticationService {
     }
 
     public TokenResponseDto refresh(String refreshToken) {
-        var token = refreshTokenService.validateRefreshToken(refreshToken);
+        var token = refreshTokenService.validateAndRotate(refreshToken);
         String accessToken = jwtService.generateToken(token.getUser());
-        return new TokenResponseDto(accessToken, "Access token refreshed");
+        var newRefreshToken = refreshTokenService.createRefreshToken(token.getUser());
+
+        return new TokenResponseDto(accessToken, newRefreshToken.getToken(), "Access token refreshed");
     }
 
     public void logout(String refreshToken) {

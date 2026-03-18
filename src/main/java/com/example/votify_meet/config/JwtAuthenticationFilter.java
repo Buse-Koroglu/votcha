@@ -21,7 +21,7 @@ import java.io.IOException;
  * Check if you have an ID (token).
  * If you do, they'll let you in otherwise call the police!
  * OncePerRequest means 'Work only once per request'.
- * */
+*/
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -40,7 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String userEmail;
 
         // If there is no authorization
-        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if(isInvalidAuthHeader(authHeader)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -48,11 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Remove the word "Bearer" and get the pure token
         jwt = authHeader.substring(7);
 
-        // Extract the username from the token
-        userEmail = jwtService.extractUsername(jwt);
+        try{
+            // Go to the next filter (Controller)
+            // Extract the username from the token
+            userEmail = jwtService.extractUsername(jwt);
 
-        if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            try {
+            if(isAuthenticationRequired(userEmail)) {
                 // Retrieve the user from the DB
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
@@ -68,19 +69,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // ENTER IDENTITY INTO THE SYSTEM
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
-            }
-            catch (Exception e){
-                // If user not found (e.g. deleted user with old token), just ignore
-                // and let the request proceed (it will likely fail authorization if endpoint requires auth)
-            }
-        }
 
-        try{
-            // Go to the next filter (Controller)
-            filterChain.doFilter(request, response);
+            }
         }catch (ExpiredJwtException e){
-            logger.info("JWT expired: "+ e.getMessage());
-            handleAuthenticationException(response, "Token is expired, please login!");
+            if (request.getServletPath().startsWith("/api/auth")) {
+                filterChain.doFilter(request, response);
+            } else {
+                // Ama korumalı bir sayfaya gidiyorsa senin o meşhur metodunla 401 dön!
+                logger.error("JWT expired: " + e.getMessage());
+                handleAuthenticationException(response, "Token is expired, please login!");
+            }
         }catch (Exception e){
             handleAuthenticationException(response, "Invalid token!");
         }
@@ -92,5 +90,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String jsonResponse = String.format("{\"error\": \"Unauthorized\", \"message\": \"%s\"}", message);
         response.getWriter().write(jsonResponse);
+    }
+
+
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+        return path.startsWith("/api/auth");
+    }
+
+    /*
+    * Check authHeader if it is invalid
+    */
+    private boolean isInvalidAuthHeader(String authHeader) {
+        return authHeader == null || !authHeader.startsWith("Bearer ");
+    }
+
+    /*
+    * Check authentication if it is required
+    */
+    private boolean isAuthenticationRequired(String userEmail) {
+        return userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null;
     }
 }
