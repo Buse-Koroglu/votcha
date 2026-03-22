@@ -2,7 +2,6 @@ package com.example.votify_meet.controller;
 
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
 import com.example.votify_meet.auth.api.dto.RegisterResponseDto;
-import com.example.votify_meet.auth.api.dto.TokenResponseDto;
 import com.example.votify_meet.auth.api.controller.AuthenticationController;
 import com.example.votify_meet.auth.api.dto.AuthResponseDto;
 import com.example.votify_meet.auth.api.util.CookieHelper;
@@ -111,7 +110,7 @@ public class AuthControllerTest {
     void refresh_returnsNewToken_whenCookieIsValid() throws Exception {
         // Arrange
         String validRefreshToken = "refresh-token";
-        TokenResponseDto expectedResponse = new TokenResponseDto("access-token", "refresh-token", "Access token refreshed");
+        AuthResponseDto expectedResponse = new AuthResponseDto("access-token", "refresh-token", "Access token refreshed");
 
         when(cookieHelper.generateRefreshTokenCookie(anyString()))
                 .thenReturn(ResponseCookie.from("refreshToken", "refresh-token")

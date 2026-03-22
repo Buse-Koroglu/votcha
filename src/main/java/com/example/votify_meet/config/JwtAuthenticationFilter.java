@@ -48,8 +48,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Remove the word "Bearer" and get the pure token
         jwt = authHeader.substring(7);
 
+
         try{
-            // Go to the next filter (Controller)
             // Extract the username from the token
             userEmail = jwtService.extractUsername(jwt);
 
@@ -71,11 +71,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
             }
+            filterChain.doFilter(request, response);
+
         }catch (ExpiredJwtException e){
             if (request.getServletPath().startsWith("/api/auth")) {
                 filterChain.doFilter(request, response);
             } else {
-                // Ama korumalı bir sayfaya gidiyorsa senin o meşhur metodunla 401 dön!
                 logger.error("JWT expired: " + e.getMessage());
                 handleAuthenticationException(response, "Token is expired, please login!");
             }
@@ -90,13 +91,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String jsonResponse = String.format("{\"error\": \"Unauthorized\", \"message\": \"%s\"}", message);
         response.getWriter().write(jsonResponse);
-    }
-
-
-    @Override
-    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
-        String path = request.getServletPath();
-        return path.startsWith("/api/auth");
     }
 
     /*

@@ -2,7 +2,6 @@ package com.example.votify_meet.auth.api.controller;
 
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
 import com.example.votify_meet.auth.api.dto.RegisterResponseDto;
-import com.example.votify_meet.auth.api.dto.TokenResponseDto;
 import com.example.votify_meet.auth.api.dto.AuthResponseDto;
 import com.example.votify_meet.auth.api.util.CookieHelper;
 import com.example.votify_meet.auth.service.AuthenticationService;
@@ -31,9 +30,11 @@ public class AuthenticationController {
         return authenticationService.register(request);
 
     }
+
+
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<TokenResponseDto> authenticate(
+    public ResponseEntity<AuthResponseDto> authenticate(
             @RequestBody AuthRequestDto request
     ) {
         AuthResponseDto loginResponse = authenticationService.login(request);
@@ -43,21 +44,23 @@ public class AuthenticationController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, loggedInFlag.toString())
-                .body(new TokenResponseDto(loginResponse.accessToken(), loginResponse.refreshToken(), loginResponse.message()));
+                .body(new AuthResponseDto(loginResponse.accessToken(), loginResponse.refreshToken(), loginResponse.message()));
 
     }
 
+
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponseDto> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken){
+    public ResponseEntity<AuthResponseDto> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken){
         if(refreshToken == null || refreshToken.isBlank()){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        TokenResponseDto responseDto = authenticationService.refresh(refreshToken);
+        AuthResponseDto responseDto = authenticationService.refresh(refreshToken);
 
         ResponseCookie refreshCookie = cookieHelper.generateRefreshTokenCookie(responseDto.refreshToken());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body(responseDto);
+                .body(responseDto
+                );
     }
 
     @PostMapping("/logout")

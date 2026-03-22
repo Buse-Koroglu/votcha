@@ -43,12 +43,6 @@ public class CookieHelper {
                 .maxAge(0)
                 .build();
     }
-    public HttpHeaders getAuthHeaders(String refreshToken){
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.SET_COOKIE, generateRefreshTokenCookie(refreshToken).toString());
-        headers.add(HttpHeaders.SET_COOKIE, generateLoggedInFlagCookie(true).toString());
-        return headers;
-    }
     public HttpHeaders getLogoutHeaders(){
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.SET_COOKIE, getCleanRefreshTokenCookie().toString());

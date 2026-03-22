@@ -3,7 +3,6 @@ package com.example.votify_meet.auth.service;
 import com.example.votify_meet.aop.BusinessAction;
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
 import com.example.votify_meet.auth.api.dto.RegisterResponseDto;
-import com.example.votify_meet.auth.api.dto.TokenResponseDto;
 import com.example.votify_meet.auth.api.dto.AuthResponseDto;
 import com.example.votify_meet.auth.domain.model.RefreshToken;
 import com.example.votify_meet.config.JwtService;
@@ -57,12 +56,12 @@ public class AuthenticationService {
         return new AuthResponseDto(jwtToken, refreshToken.getToken(), "User successfully login");
     }
 
-    public TokenResponseDto refresh(String refreshToken) {
+    public AuthResponseDto refresh(String refreshToken) {
         var token = refreshTokenService.validateAndRotate(refreshToken);
         String accessToken = jwtService.generateToken(token.getUser());
         var newRefreshToken = refreshTokenService.createRefreshToken(token.getUser());
 
-        return new TokenResponseDto(accessToken, newRefreshToken.getToken(), "Access token refreshed");
+        return new AuthResponseDto(accessToken, newRefreshToken.getToken(), "Access token refreshed");
     }
 
     public void logout(String refreshToken) {
