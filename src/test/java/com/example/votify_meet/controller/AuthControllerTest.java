@@ -139,7 +139,7 @@ public class AuthControllerTest {
         mockMvc.perform(post("/api/auth/refresh")
                         .cookie(new Cookie("refreshToken", "not-exist-token")))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Token Not Found"));
+                .andExpect(jsonPath("$.error").value("TOKEN_NOT_FOUND"));
     }
 
     @Test
@@ -152,7 +152,7 @@ public class AuthControllerTest {
         mockMvc.perform(post("/api/auth/refresh")
                         .cookie(new Cookie("refreshToken", "expired-token")))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Token expired"));
+                .andExpect(jsonPath("$.error").value("UNAUTHORIZED"));
     }
 
     @Test
@@ -165,7 +165,7 @@ public class AuthControllerTest {
         mockMvc.perform(post("/api/auth/refresh")
                         .cookie(new Cookie("refreshToken", "revoked-token")))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Token revoked"));
+                .andExpect(jsonPath("$.error").value("ACCESS_DENIED"));
     }
 
 
