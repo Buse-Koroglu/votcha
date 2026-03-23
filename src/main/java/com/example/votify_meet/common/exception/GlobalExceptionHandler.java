@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // Common error login
-    private void logException(Exception ex, HttpStatus status) {
+    private void logException(Exception ex, HttpStatus status, String message) {
         String currentUser = "anonymousUser";
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated()) {
@@ -45,16 +45,16 @@ public class GlobalExceptionHandler {
         MDC.put("status_code", String.valueOf(status.value()));
 
         if (status.is5xxServerError()) {
-            logger.error("SYSTEM_ERROR: {}", ex.getMessage()); // with StackTree
+            logger.error("SYSTEM_ERROR: {}", message, ex); // with StackTree
         } else {
-            logger.warn(ex.getMessage());
+            logger.warn(message);
         }
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Object handleAll(Exception ex, WebRequest request) {
-        logException(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+        logException(ex, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         return internalServerError().body("An error occurred.");
     }
 
@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
             TokenNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleResourceNotFoundExceptions(RuntimeException ex) {
-        logException(ex, HttpStatus.NOT_FOUND);
+        logException(ex, HttpStatus.NOT_FOUND, ex.getMessage());
         return Map.of("error", ex.getMessage());
     }
 
@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
             RuntimeException ex
 
     ) {
-        logException(ex, HttpStatus.CONFLICT);
+        logException(ex, HttpStatus.CONFLICT, ex.getMessage());
         return Map.of("error", ex.getMessage());
     }
 
@@ -86,7 +86,6 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleValidationException(
             MethodArgumentNotValidException ex) {
-        logException(ex, HttpStatus.BAD_REQUEST);
 
         Map<String, String> errors = new HashMap<>();
 
@@ -95,6 +94,8 @@ public class GlobalExceptionHandler {
                         errors.put(error.getField(), error.getDefaultMessage())
                 );
 
+        String cleanMessage = "Validation Error: " + errors.toString();
+        logException(ex, HttpStatus.BAD_REQUEST, cleanMessage);
         return errors;
     }
 
@@ -106,7 +107,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public Map<String, String> handleUnauthorizedException(
             RuntimeException ex) {
-        logException(ex, HttpStatus.UNAUTHORIZED);
+        logException(ex, HttpStatus.UNAUTHORIZED, ex.getMessage());
         return Map.of("error", ex.getMessage());
     }
 
@@ -114,7 +115,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Map<String, String> handleAccessDeniedException(
             AppAccessDeniedException ex) {
-        logException(ex, HttpStatus.FORBIDDEN);
+        logException(ex, HttpStatus.FORBIDDEN, ex.getMessage());
         return Map.of("error", ex.getMessage());
     }
 

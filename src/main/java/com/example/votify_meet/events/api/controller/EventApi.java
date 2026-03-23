@@ -21,7 +21,7 @@ public interface EventApi {
 
     @GetMapping("/users/me/events")
     @ResponseStatus(HttpStatus.OK)
-    List<EventResponseDto> getEvents(@AuthenticationPrincipal Users currentUser);
+    List<EventResponseDto> getAllEvents(@AuthenticationPrincipal Users currentUser);
 
     @GetMapping("/events/{id}")
     @ResponseStatus(HttpStatus.OK)

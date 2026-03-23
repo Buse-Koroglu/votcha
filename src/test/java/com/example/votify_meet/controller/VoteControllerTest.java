@@ -156,7 +156,7 @@ public class VoteControllerTest {
         VoteRequestDto request = new VoteRequestDto(VOTE_ID);
 
         // Act
-        when(voteService.updateVote(VOTE_ID,request)).thenReturn(standardResponse);
+        when(voteService.updateVote(mockUser, VOTE_ID,request)).thenReturn(standardResponse);
 
         // Assert
         mockMvc.perform(patch("/api/votes/{id}",VOTE_ID)

@@ -22,36 +22,6 @@ import java.util.Objects;
 public class LoggingAspect {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
 
-    /*
-    * @Pointcut(***)
-    * A point during the execution of a program, such as execution of a method or the handling of an exception
-    * In Spring AOP, a join point always represents a method execution.
-    */
-
-    /*
-    * @Before(**)
-    * Advice that executes before a joint point.
-    * But it doesn't have the ability to prevent execution flow (unless it throws an exception).
-    */
-
-    /*
-    * @After(***)
-    * Advice that executes after a joint point.
-    * Completes normally if a method returns without throwing an exception.
-    */
-
-    /*
-     * @AfterThrowing(***)
-     * Advice to be executed if a method exits by throwing an exception.
-     */
-
-    /*
-     * @Around(***)
-     * Advice that surrounds a join point such as a method invocation.
-     * This is the most powerful kind of advice.
-     * Around advice can perform custom behavior before and after the method invocation.
-     */
-
     // Business action logs
     @Around("@annotation(businessAction)")
     public Object logBusinessAction(ProceedingJoinPoint joinPoint, BusinessAction businessAction) throws Throwable {
@@ -74,7 +44,7 @@ public class LoggingAspect {
 
             return result;
         }catch (Throwable throwable){
-            recordLog(start, "FAIL", throwable.getMessage());
+            recordLog(start, "FAIL", throwable);
             throw throwable;
         }
         finally {
@@ -93,19 +63,30 @@ public class LoggingAspect {
             MDC.put("duration", String.valueOf(duration));
             logger.info("REST_API_CALL: {} | Duration: {}ms",
                     joinPoint.getSignature().toShortString(), duration);
-            // DO NOT use MDC.clear() here. It will kill your traceId.
             MDC.remove("duration");
         }
     }
 
-    private void recordLog(long startTime, String status, String error){
+    private void recordLog(long startTime, String status, Throwable throwable) {
         long duration = System.currentTimeMillis() - startTime;
         MDC.put("duration", String.valueOf(duration));
         MDC.put("status", status);
 
         if ("FAIL".equals(status)) {
-            logger.error("BUSINESS_ACTION_FAILED: {} | Duration: {}ms | Error: {}",
-                    MDC.get("action"), duration, error);
+            String action = MDC.get("action");
+            String errorMessage = (throwable != null) ? throwable.getMessage() : "Unknown error";
+
+
+            if (isSystemError(throwable)) {
+                logger.error("BUSINESS_ACTION_FAILED: {} | Duration: {}ms | Error: {}",
+                        action, duration, errorMessage, throwable);
+            }
+            else {
+                // If it is a business error (400, 404, 409), the type must be 'WARN'
+                logger.warn("BUSINESS_ACTION_FAILED: {} | Duration: {}ms | Error: {}",
+                        action, duration, errorMessage);
+            }
+
         } else {
             logger.info("BUSINESS_ACTION_SUCCESS: {} | Duration: {}ms",
                     MDC.get("action"), duration);
@@ -117,6 +98,7 @@ public class LoggingAspect {
             MDC.remove(arg);
         }
     }
+
     private String resolveUserIdentifier(Object[] args){
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
@@ -156,6 +138,11 @@ public class LoggingAspect {
         } catch (Exception e) {
             return expression; // Print the log if there is an error
         }
+    }
+
+    // Determine the error type (System error, Exception or another)
+    private boolean isSystemError(Throwable throwable){
+        return throwable == null || throwable.getClass().getName().startsWith("java.");
     }
 
 }

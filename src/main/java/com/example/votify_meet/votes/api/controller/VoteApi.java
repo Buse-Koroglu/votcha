@@ -27,5 +27,5 @@ public interface VoteApi {
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    VoteResponseDto updateVote(@PathVariable(name = "id") String id,@Valid @RequestBody VoteRequestDto request);
+    VoteResponseDto updateVote(@AuthenticationPrincipal Users user, @PathVariable(name = "id") String id,@Valid @RequestBody VoteRequestDto request);
 }
