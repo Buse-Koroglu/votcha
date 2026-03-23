@@ -51,11 +51,39 @@ public class GlobalExceptionHandler {
         }
     }
 
+    private ErrorResponse buildErrorResponse(
+            Exception exception,
+            HttpStatus status,
+            WebRequest request
+    ) {
+        String path = request.getDescription(false).replace("uri=", "");
+
+        String errorCode = "GENERIC_ERROR";
+
+        if (exception instanceof BaseException baseException) {
+            errorCode = baseException.getCode();
+        }
+
+        return new ErrorResponse(
+                java.time.LocalDateTime.now().toString(),
+                status.value(),
+                errorCode,
+                exception.getMessage(),
+                path
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Object handleAll(Exception ex, WebRequest request) {
+    public ErrorResponse handleAll(Exception ex, WebRequest request) {
         logException(ex, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-        return internalServerError().body("An error occurred.");
+             return new ErrorResponse(
+                java.time.LocalDateTime.now().toString(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "INTERNAL_SERVER_ERROR",
+                "An error occurred",
+                request.getDescription(false).replace("uri=", "")
+        );
     }
 
     @ExceptionHandler({
@@ -65,27 +93,26 @@ public class GlobalExceptionHandler {
             VoteNotFoundException.class,
             TokenNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleResourceNotFoundExceptions(RuntimeException ex) {
+    public ErrorResponse handleResourceNotFoundExceptions(RuntimeException ex,WebRequest request) {
         logException(ex, HttpStatus.NOT_FOUND, ex.getMessage());
-        return Map.of("error", ex.getMessage());
+        return buildErrorResponse(ex,HttpStatus.NOT_FOUND,request);
     }
 
     @ExceptionHandler({
             AlreadyVotedException.class,
             UserIsAlreadyExistsException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> handleResourceConflictException(
-            RuntimeException ex
-
+    public ErrorResponse handleResourceConflictException(
+            RuntimeException ex, WebRequest request
     ) {
         logException(ex, HttpStatus.CONFLICT, ex.getMessage());
-        return Map.of("error", ex.getMessage());
+        return buildErrorResponse(ex,HttpStatus.CONFLICT,request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleValidationException(
-            MethodArgumentNotValidException ex) {
+    public ErrorResponse handleValidationException(
+            MethodArgumentNotValidException ex , WebRequest request) {
 
         Map<String, String> errors = new HashMap<>();
 
@@ -96,7 +123,13 @@ public class GlobalExceptionHandler {
 
         String cleanMessage = "Validation Error: " + errors.toString();
         logException(ex, HttpStatus.BAD_REQUEST, cleanMessage);
-        return errors;
+        return new ErrorResponse(
+                java.time.LocalDateTime.now().toString(),
+                HttpStatus.BAD_REQUEST.value(),
+                "VALIDATION_ERROR",
+                cleanMessage,
+                request.getDescription(false).replace("uri=", "")
+        );
     }
 
     @ExceptionHandler({
@@ -105,23 +138,29 @@ public class GlobalExceptionHandler {
             TokenRevokedException.class
     })
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public Map<String, String> handleUnauthorizedException(
-            RuntimeException ex) {
+    public ErrorResponse handleUnauthorizedException(
+            RuntimeException ex, WebRequest request) {
         logException(ex, HttpStatus.UNAUTHORIZED, ex.getMessage());
-        return Map.of("error", ex.getMessage());
+        return buildErrorResponse(ex,HttpStatus.UNAUTHORIZED,request);
     }
 
     @ExceptionHandler(AppAccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public Map<String, String> handleAccessDeniedException(
-            AppAccessDeniedException ex) {
+    public ErrorResponse handleAccessDeniedException(
+            AppAccessDeniedException ex, WebRequest request) {
         logException(ex, HttpStatus.FORBIDDEN, ex.getMessage());
-        return Map.of("error", ex.getMessage());
+        return buildErrorResponse(ex,HttpStatus.FORBIDDEN,request);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public Map<String, String> handleBadCredentialsException(BadCredentialsException ex) {
-        return Map.of("error", "Invalid email or password");
+    public ErrorResponse handleBadCredentialsException(BadCredentialsException ex,WebRequest request) {
+        return new ErrorResponse(
+                java.time.LocalDateTime.now().toString(),
+                HttpStatus.UNAUTHORIZED.value(),
+                "INVALID_CREDENTIALS",
+                "Invalid email or password",
+                request.getDescription(false).replace("uri=", "")
+        );
     }
 }

@@ -1,7 +1,11 @@
 package com.example.votify_meet.auth.domain.exception;
 
-public class TokenNotFoundException extends RuntimeException{
+import com.example.votify_meet.common.exception.BaseException;
+
+public class TokenNotFoundException extends BaseException {
+    private static final String code = "TOKEN_NOT_FOUND";
+
     public TokenNotFoundException(String message){
-        super(message);
+        super(message,code);
     }
 }

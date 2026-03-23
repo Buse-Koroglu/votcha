@@ -1,7 +1,10 @@
 package com.example.votify_meet.options.domain.exception;
 
-public class UnauthorizedException extends RuntimeException{
+import com.example.votify_meet.common.exception.BaseException;
+
+public class UnauthorizedException extends BaseException {
+    private static final String code = "UNAUTHORIZED";
     public UnauthorizedException(String message){
-        super(message);
+        super(message,code);
     }
 }

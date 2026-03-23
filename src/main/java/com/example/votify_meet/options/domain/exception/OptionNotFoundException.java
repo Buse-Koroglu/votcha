@@ -1,7 +1,10 @@
 package com.example.votify_meet.options.domain.exception;
 
-public class OptionNotFoundException extends RuntimeException {
+import com.example.votify_meet.common.exception.BaseException;
+
+public class OptionNotFoundException extends BaseException {
+    private static final String code = "OPTION_NOT_FOUND";
     public OptionNotFoundException(String message) {
-        super(message);
+        super(message,code);
     }
 }
