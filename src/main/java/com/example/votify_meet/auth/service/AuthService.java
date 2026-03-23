@@ -1,11 +1,9 @@
 package com.example.votify_meet.auth.service;
 
-import com.example.votify_meet.aop.BusinessAction;
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
 import com.example.votify_meet.auth.api.dto.RegisterResponseDto;
 import com.example.votify_meet.auth.api.dto.AuthResponseDto;
 import com.example.votify_meet.auth.domain.model.RefreshToken;
-import com.example.votify_meet.config.JwtService;
 import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import com.example.votify_meet.users.api.mapper.UsersMapper;
 import com.example.votify_meet.users.domain.exception.UserIsAlreadyExistsException;
@@ -20,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationService {
+public class AuthService {
     private final UsersRepo  usersRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -28,7 +26,6 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
 
-    @BusinessAction(action = "USER_REGISTERED", domain = "AUTH")
     public RegisterResponseDto register(UsersRequestDto request){
         usersRepo.findByEmail(request.email()).ifPresent(user -> {
             throw new UserIsAlreadyExistsException(String.format("User with email %s already exists", request.email()));
@@ -40,7 +37,6 @@ public class AuthenticationService {
         return new RegisterResponseDto("User successfully registered");
     }
 
-    @BusinessAction(action = "USER_LOGIN", domain = "AUTH")
     public AuthResponseDto login(AuthRequestDto request){
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

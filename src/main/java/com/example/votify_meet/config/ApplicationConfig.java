@@ -1,5 +1,6 @@
 package com.example.votify_meet.config;
 
+import com.example.votify_meet.common.web.filter.JwtAuthenticationFilter;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

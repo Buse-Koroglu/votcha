@@ -1,6 +1,6 @@
 package com.example.votify_meet.controller;
 
-import com.example.votify_meet.config.JwtService;
+import com.example.votify_meet.auth.service.JwtService;
 import com.example.votify_meet.options.api.controller.OptionController;
 import com.example.votify_meet.options.api.dto.OptionRequestDto;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;

@@ -1,13 +1,17 @@
-package com.example.votify_meet.aop;
+package com.example.votify_meet.common.logging;
 
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
 import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -56,6 +60,9 @@ public class LoggingAspect {
         MDC.put("domain", businessAction.domain());
         MDC.put("action", businessAction.action());
 
+        String dynamicDetails = parseSpel(businessAction.logDetails(), joinPoint);
+        MDC.put("details", dynamicDetails);
+
         String userIdentifier = resolveUserIdentifier(joinPoint.getArgs());
         MDC.put("user", userIdentifier);
 
@@ -71,7 +78,7 @@ public class LoggingAspect {
             throw throwable;
         }
         finally {
-            removeFromMDC("domain", "user", "action", "duration", "status");
+            removeFromMDC("domain", "user", "action", "duration", "status", "details");
         }
     }
 
@@ -128,41 +135,27 @@ public class LoggingAspect {
         return "anonymousUser";
     }
 
+    private String parseSpel(String expression, JoinPoint joinPoint){
+        if (expression == null || expression.isBlank()) return "";
 
-/*
+        ExpressionParser parser = new SpelExpressionParser();
+        StandardEvaluationContext context = new StandardEvaluationContext();
 
-    @Pointcut("execution(* com.example.votify_meet.users.domain.model.*.*(..))")
-    public void forUsersEntity() {}
-
-    @Pointcut("execution(* com.example.votify_meet.events.domain.model.*.*(..))")
-    public void forEventEntity() {}
-
-    @Pointcut("execution(* com.example.votify_meet.options.domain.model.*.*(..))")
-    public void forOptionEntity() {}
-
-    @Pointcut("execution(* com.example.votify_meet.votes.domain.model.*.*(..))")
-    public void forVoteEntity() {}
-
-    // This method will run before all the methods above
-    @Pointcut("forUsersEntity() | forEventEntity() | forOptionEntity() | forVoteEntity()")
-    public void forFlow(){}
-
-    // This method will run before forFlow(), we will manage the logs for each method from here!
-    @Before("forFlow()")
-    public void beforeFlow(JoinPoint joinPoint){
-        String method = joinPoint.getSignature().toShortString();
-        logger.info("Before {}", method);
-
+        // Add to the context the method parameters
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        String[] parameterNames = signature.getParameterNames();
         Object[] args = joinPoint.getArgs();
-        for(Object arg : args){
-            logger.info("Args {}: ", arg);
+
+        for (int i = 0; i < parameterNames.length; i++) {
+            context.setVariable(parameterNames[i], args[i]);
+        }
+
+        try {
+            // If the expression starts with '#', then parse it, if not return directly
+            return parser.parseExpression(expression).getValue(context, String.class);
+        } catch (Exception e) {
+            return expression; // Print the log if there is an error
         }
     }
 
-    @AfterReturning(pointcut = "forFlow()",
-                    returning = "result")
-    public void afterReturning(Object result){
-        logger.info("Result: {} ", result);
-    }
-*/
 }

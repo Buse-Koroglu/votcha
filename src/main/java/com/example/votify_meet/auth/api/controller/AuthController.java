@@ -4,10 +4,9 @@ import com.example.votify_meet.auth.api.dto.AuthRequestDto;
 import com.example.votify_meet.auth.api.dto.RegisterResponseDto;
 import com.example.votify_meet.auth.api.dto.AuthResponseDto;
 import com.example.votify_meet.auth.api.util.CookieHelper;
-import com.example.votify_meet.auth.service.AuthenticationService;
+import com.example.votify_meet.auth.service.AuthService;
+import com.example.votify_meet.common.logging.BusinessAction;
 import com.example.votify_meet.users.api.dto.UsersRequestDto;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,28 +15,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth", description = "Authentication Management APIs")
-public class AuthenticationController {
-    private final AuthenticationService authenticationService;
+public class AuthController implements AuthApi{
+    private final AuthService authService;
     private final CookieHelper cookieHelper;
 
-    @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    public RegisterResponseDto register(
-            @Valid @RequestBody UsersRequestDto request){
-        return authenticationService.register(request);
+    @BusinessAction(action = "USER_REGISTERED", domain = "AUTH")
+    @Override
+    public RegisterResponseDto register(UsersRequestDto request){
+        return authService.register(request);
 
     }
 
-
-    @PostMapping("/login")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<AuthResponseDto> authenticate(
-            @RequestBody AuthRequestDto request
-    ) {
-        AuthResponseDto loginResponse = authenticationService.login(request);
+    @BusinessAction(action = "USER_LOGIN", domain = "AUTH")
+    @Override
+    public ResponseEntity<AuthResponseDto> authenticate( AuthRequestDto request) {
+        AuthResponseDto loginResponse = authService.login(request);
         ResponseCookie refreshCookie = cookieHelper.generateRefreshTokenCookie(loginResponse.refreshToken());
         ResponseCookie loggedInFlag = cookieHelper.generateLoggedInFlagCookie(true);
 
@@ -49,12 +42,12 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping("/refresh")
-    public ResponseEntity<AuthResponseDto> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken){
+    @Override
+    public ResponseEntity<AuthResponseDto> refresh(String refreshToken){
         if(refreshToken == null || refreshToken.isBlank()){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        AuthResponseDto responseDto = authenticationService.refresh(refreshToken);
+        AuthResponseDto responseDto = authService.refresh(refreshToken);
 
         ResponseCookie refreshCookie = cookieHelper.generateRefreshTokenCookie(responseDto.refreshToken());
         return ResponseEntity.ok()
@@ -63,9 +56,11 @@ public class AuthenticationController {
                 );
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
-        authenticationService.logout(refreshToken);
+
+    @BusinessAction(action = "USER_LOGOUT", domain = "AUTH")
+    @Override
+    public ResponseEntity<Void> logout(String refreshToken) {
+        authService.logout(refreshToken);
 
         return ResponseEntity.ok()
                 .headers(cookieHelper.getLogoutHeaders())

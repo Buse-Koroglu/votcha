@@ -1,4 +1,4 @@
-package com.example.votify_meet.aop;
+package com.example.votify_meet.common.web.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

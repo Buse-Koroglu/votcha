@@ -1,5 +1,6 @@
 package com.example.votify_meet.users.api.controller;
 
+import com.example.votify_meet.common.logging.BusinessAction;
 import com.example.votify_meet.users.api.dto.UpdateUsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.domain.model.Users;
@@ -24,11 +25,15 @@ public class UsersController {
     public UsersResponseDto getUser(@AuthenticationPrincipal Users user) {
         return usersService.getUser(user.getId());
     }
+
+    @BusinessAction(action = "USER_DELETED", domain = "USERS", logDetails = "'Target User ID: ' + #user.id")
     @DeleteMapping("/me")
     @ResponseStatus(HttpStatus.OK)
     public UsersResponseDto deleteUser(@AuthenticationPrincipal Users user) {
         return usersService.deleteUser(user.getId());
     }
+
+    @BusinessAction(action = "USER_UPDATED", domain = "USERS", logDetails = "'Target User ID: ' + #user.id")
     @PatchMapping("/me")
     @ResponseStatus(HttpStatus.OK)
     public UsersResponseDto updateUser(@AuthenticationPrincipal Users user, @Valid  @RequestBody UpdateUsersRequestDto request) {

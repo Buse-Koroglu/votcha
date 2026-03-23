@@ -1,4 +1,4 @@
-package com.example.votify_meet.config;
+package com.example.votify_meet.auth.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

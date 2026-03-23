@@ -1,5 +1,6 @@
-package com.example.votify_meet.config;
+package com.example.votify_meet.common.web.filter;
 
+import com.example.votify_meet.auth.service.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

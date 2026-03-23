@@ -22,6 +22,7 @@ public class UsersService {
     public UsersResponseDto getUser(String id) {
         return usersMapper.toResponse(usersRepo.findById(id).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", id))));
     }
+
     public UsersResponseDto deleteUser(String id) {
         Users user = usersRepo.findById(id).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", id)));
         usersRepo.delete(user);

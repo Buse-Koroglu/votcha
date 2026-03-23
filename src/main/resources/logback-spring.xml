@@ -8,7 +8,6 @@
     </appender>
 
     <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>./logs/app-log.json</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>
                 ./logs/app-log.%d{yyyy-MM-dd}.%i.json

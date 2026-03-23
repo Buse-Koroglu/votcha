@@ -1,6 +1,6 @@
 package com.example.votify_meet.options.service;
 
-import com.example.votify_meet.common.exception.AccessDeniedException;
+import com.example.votify_meet.common.exception.AppAccessDeniedException;
 import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.events.domain.repository.EventsRepo;
@@ -55,7 +55,7 @@ public class OptionService {
         Option option = optionRepository.findById(optionId).orElseThrow(() -> new OptionNotFoundException(String.format("Option with id %s not found", optionId)));
 
         if(!option.getUserId().equals(user.getId())){
-            throw new AccessDeniedException("You are not allowed to access this option");
+            throw new AppAccessDeniedException("You are not allowed to access this option");
         }
         return option;
     }

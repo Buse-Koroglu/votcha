@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -55,7 +55,6 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Object handleAll(Exception ex, WebRequest request) {
         logException(ex, HttpStatus.INTERNAL_SERVER_ERROR);
-        MDC.clear();
         return internalServerError().body("An error occurred.");
     }
 
@@ -68,7 +67,6 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleResourceNotFoundExceptions(RuntimeException ex) {
         logException(ex, HttpStatus.NOT_FOUND);
-        MDC.clear();
         return Map.of("error", ex.getMessage());
     }
 
@@ -81,7 +79,6 @@ public class GlobalExceptionHandler {
 
     ) {
         logException(ex, HttpStatus.CONFLICT);
-        MDC.clear();
         return Map.of("error", ex.getMessage());
     }
 
@@ -90,7 +87,6 @@ public class GlobalExceptionHandler {
     public Map<String, String> handleValidationException(
             MethodArgumentNotValidException ex) {
         logException(ex, HttpStatus.BAD_REQUEST);
-        MDC.clear();
 
         Map<String, String> errors = new HashMap<>();
 
@@ -111,16 +107,20 @@ public class GlobalExceptionHandler {
     public Map<String, String> handleUnauthorizedException(
             RuntimeException ex) {
         logException(ex, HttpStatus.UNAUTHORIZED);
-        MDC.clear();
         return Map.of("error", ex.getMessage());
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
+    @ExceptionHandler(AppAccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Map<String, String> handleAccessDeniedException(
-            AccessDeniedException ex) {
+            AppAccessDeniedException ex) {
         logException(ex, HttpStatus.FORBIDDEN);
-        MDC.clear();
         return Map.of("error", ex.getMessage());
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Map<String, String> handleBadCredentialsException(BadCredentialsException ex) {
+        return Map.of("error", "Invalid email or password");
     }
 }

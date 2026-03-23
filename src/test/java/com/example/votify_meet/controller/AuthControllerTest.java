@@ -2,15 +2,15 @@ package com.example.votify_meet.controller;
 
 import com.example.votify_meet.auth.api.dto.AuthRequestDto;
 import com.example.votify_meet.auth.api.dto.RegisterResponseDto;
-import com.example.votify_meet.auth.api.controller.AuthenticationController;
+import com.example.votify_meet.auth.api.controller.AuthController;
 import com.example.votify_meet.auth.api.dto.AuthResponseDto;
 import com.example.votify_meet.auth.api.util.CookieHelper;
 import com.example.votify_meet.auth.domain.exception.TokenExpiredException;
 import com.example.votify_meet.auth.domain.exception.TokenNotFoundException;
 import com.example.votify_meet.auth.domain.exception.TokenRevokedException;
-import com.example.votify_meet.auth.service.AuthenticationService;
+import com.example.votify_meet.auth.service.AuthService;
 import com.example.votify_meet.auth.service.RefreshTokenService;
-import com.example.votify_meet.config.JwtService;
+import com.example.votify_meet.auth.service.JwtService;
 import com.example.votify_meet.users.api.dto.UsersRequestDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -32,12 +32,12 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AuthenticationController.class)
+@WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false) // prevents 401 Unauthorized Error (/api/auth/**).permitAll()
 public class AuthControllerTest {
     @Autowired private MockMvc mockMvc;
 
-    @MockitoBean private AuthenticationService  authenticationService;
+    @MockitoBean private AuthService authService;
     @MockitoBean private JwtService  jwtService;
     @MockitoBean private UserDetailsService userDetailsService;
     @MockitoBean private RefreshTokenService refreshTokenService;
@@ -56,7 +56,7 @@ public class AuthControllerTest {
     void register_returns201_whenValidRequest() throws Exception {
         // Arrange
         UsersRequestDto request = new UsersRequestDto("Enes", "Test", "enes@test.com", "password123");
-        when(authenticationService.register(any(UsersRequestDto.class))).thenReturn(successRegisterResponse);
+        when(authService.register(any(UsersRequestDto.class))).thenReturn(successRegisterResponse);
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/register")
@@ -84,7 +84,7 @@ public class AuthControllerTest {
                 .build();
 
         // Act
-        when(authenticationService.login(any(AuthRequestDto.class))).thenReturn(expectedResponse);
+        when(authService.login(any(AuthRequestDto.class))).thenReturn(expectedResponse);
 
         when(cookieHelper.generateRefreshTokenCookie(any(String.class))).thenReturn(dummyRefreshCookie);
         when(cookieHelper.generateLoggedInFlagCookie(true)).thenReturn(dummyFlagCookie);
@@ -102,7 +102,7 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("User successfully login"));
 
         // Assert
-        verify(authenticationService, times(1)).login(any(AuthRequestDto.class));
+        verify(authService, times(1)).login(any(AuthRequestDto.class));
     }
 
     @Test
@@ -117,7 +117,7 @@ public class AuthControllerTest {
                         .path("/")
                         .httpOnly(true)
                         .build());
-        when(authenticationService.refresh(validRefreshToken)).thenReturn(expectedResponse);
+        when(authService.refresh(validRefreshToken)).thenReturn(expectedResponse);
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/refresh")
@@ -133,7 +133,7 @@ public class AuthControllerTest {
     @DisplayName("Refresh - Should return error when token is not found in db")
     void refresh_returnsError_whenTokenNotFound() throws Exception {
         // Arrange
-        when(authenticationService.refresh(anyString()))
+        when(authService.refresh(anyString()))
                 .thenThrow(new TokenNotFoundException("Token Not Found"));
         // Act & Assert
         mockMvc.perform(post("/api/auth/refresh")
@@ -146,7 +146,7 @@ public class AuthControllerTest {
     @DisplayName("Refresh - Should return 401 when token expired")
     void refresh_returns401_whenTokenExpired() throws Exception {
         // Arrange
-        when(authenticationService.refresh(anyString()))
+        when(authService.refresh(anyString()))
                 .thenThrow(new TokenExpiredException("Token expired"));
         // Act & Assert
         mockMvc.perform(post("/api/auth/refresh")
@@ -159,7 +159,7 @@ public class AuthControllerTest {
     @DisplayName("Refresh - Should return 401 when token is revoked")
     void refresh_returns401_whenTokenRevoked() throws Exception {
         // Arrange
-        when(authenticationService.refresh(anyString()))
+        when(authService.refresh(anyString()))
                 .thenThrow(new TokenRevokedException("Token revoked"));
         // Act & Assert
         mockMvc.perform(post("/api/auth/refresh")
