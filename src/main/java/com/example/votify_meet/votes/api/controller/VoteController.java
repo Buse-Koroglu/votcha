@@ -4,43 +4,33 @@ import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.votes.api.dto.VoteRequestDto;
 import com.example.votify_meet.votes.api.dto.VoteResponseDto;
 import com.example.votify_meet.votes.service.VoteService;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/votes")
-@Tag(name = "Votes", description = "Vote Management APIs")
-public class VoteController {
+public class VoteController implements VoteApi {
     private final VoteService voteService;
 
     public VoteController(VoteService voteService) {
         this.voteService = voteService;
     }
 
-    @PostMapping("")
-    @ResponseStatus(HttpStatus.CREATED)
-    public VoteResponseDto createVote(@AuthenticationPrincipal Users currentUser, @Valid @RequestBody VoteRequestDto request){
+    @Override
+    public VoteResponseDto createVote(Users currentUser, VoteRequestDto request){
         return voteService.createVote(request, currentUser.getId());
     }
 
-    @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public VoteResponseDto getVote(@AuthenticationPrincipal Users user, @PathVariable String id){
+    @Override
+    public VoteResponseDto getVote(Users user, String id){
         return voteService.getUserVote(user, id);
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public VoteResponseDto deleteVote(@AuthenticationPrincipal Users user, @PathVariable String id){
+    @Override
+    public VoteResponseDto deleteVote(Users user, String id){
         return voteService.deleteUserVote(user, id);
     }
 
-    @PatchMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public VoteResponseDto updateVote(@PathVariable(name = "id") String id,@Valid @RequestBody VoteRequestDto request){
+    @Override
+    public VoteResponseDto updateVote(String id, VoteRequestDto request){
         return voteService.updateVote(id, request);
     }
 }

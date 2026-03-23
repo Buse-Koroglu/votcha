@@ -5,38 +5,29 @@ import com.example.votify_meet.users.api.dto.UpdateUsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.service.UsersService;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/users")
-@Tag(name = "Users", description = "User Management APIs")
-public class UsersController {
+public class UsersController implements UsersApi {
     private final UsersService usersService;
 
-    @GetMapping("/me")
-    @ResponseStatus(HttpStatus.OK)
-    public UsersResponseDto getUser(@AuthenticationPrincipal Users user) {
+    @Override
+    public UsersResponseDto getUser(Users user) {
         return usersService.getUser(user.getId());
     }
 
     @BusinessAction(action = "USER_DELETED", domain = "USERS", logDetails = "'Target User ID: ' + #user.id")
-    @DeleteMapping("/me")
-    @ResponseStatus(HttpStatus.OK)
-    public UsersResponseDto deleteUser(@AuthenticationPrincipal Users user) {
+    @Override
+    public UsersResponseDto deleteUser(Users user) {
         return usersService.deleteUser(user.getId());
     }
 
     @BusinessAction(action = "USER_UPDATED", domain = "USERS", logDetails = "'Target User ID: ' + #user.id")
-    @PatchMapping("/me")
-    @ResponseStatus(HttpStatus.OK)
-    public UsersResponseDto updateUser(@AuthenticationPrincipal Users user, @Valid  @RequestBody UpdateUsersRequestDto request) {
+    @Override
+    public UsersResponseDto updateUser(Users user, UpdateUsersRequestDto request) {
         return usersService.patchUser(user.getId(), request);
     }
 }
