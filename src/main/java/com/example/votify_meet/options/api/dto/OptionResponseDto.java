@@ -9,6 +9,7 @@ public record OptionResponseDto(
     String id,
     String content,
     Instant createdAt,
-    Instant updatedAt
+    Instant updatedAt,
+    Integer voteCount
 )
 {}

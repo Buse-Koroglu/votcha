@@ -3,10 +3,7 @@ import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.users.domain.model.Users;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.*;
 
 import java.time.Instant;
 
@@ -36,6 +33,13 @@ public class Option {
     @JoinColumn(name = "event_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Event event;
+
+    /*
+    * This field is not a column in the database. When fetching the Hibernate Option,
+    * it executes this SQL in the background and directly writes the result here! (It is very performant)
+    * */
+    @Formula("(SELECT COUNT(v.id) FROM vote v WHERE v.option_id = id)")
+    private Integer voteCount;
 
     public String getUserId() {
         return event.getCreator().getId();

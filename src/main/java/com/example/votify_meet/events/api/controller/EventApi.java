@@ -19,9 +19,13 @@ public interface EventApi {
     @ResponseStatus(HttpStatus.CREATED)
     EventResponseDto createEvent(@AuthenticationPrincipal Users currentUser, @Valid @RequestBody EventRequestDto eventRequestDto);
 
+    @GetMapping("/events")
+    @ResponseStatus(HttpStatus.OK)
+    List<EventResponseDto> getAllEvents(@AuthenticationPrincipal  Users currentUser);
+
     @GetMapping("/users/me/events")
     @ResponseStatus(HttpStatus.OK)
-    List<EventResponseDto> getAllEvents(@AuthenticationPrincipal Users currentUser);
+    List<EventResponseDto> getAllUserEvents(@AuthenticationPrincipal Users currentUser);
 
     @GetMapping("/events/{id}")
     @ResponseStatus(HttpStatus.OK)

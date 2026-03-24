@@ -25,71 +25,75 @@ public class LoggingAspect {
     // Business action logs
     @Around("@annotation(businessAction)")
     public Object logBusinessAction(ProceedingJoinPoint joinPoint, BusinessAction businessAction) throws Throwable {
-        long start = System.currentTimeMillis();
-
-        MDC.put("domain", businessAction.domain());
-        MDC.put("action", businessAction.action());
-
         String dynamicDetails = parseSpel(businessAction.logDetails(), joinPoint);
-        MDC.put("details", dynamicDetails);
-
         String userIdentifier = resolveUserIdentifier(joinPoint.getArgs());
-        MDC.put("user", userIdentifier);
 
-
-        try {
-            Object result = joinPoint.proceed();
-
-            recordLog(start, "SUCCESS", null);
-
-            return result;
-        }catch (Throwable throwable){
-            recordLog(start, "FAIL", throwable);
-            throw throwable;
-        }
-        finally {
-            removeFromMDC("domain", "user", "action", "duration", "status", "details");
-        }
+        return executeWithLogging(
+                joinPoint,
+                businessAction.domain(),
+                businessAction.action(),
+                dynamicDetails,
+                userIdentifier,
+                "BUSINESS_ACTION"
+        );
     }
 
     // Performance logs for all controllers
     @Around("execution(* com.example.votify_meet.*.api.*.*(..))")
     public Object logPerformance(ProceedingJoinPoint joinPoint) throws Throwable {
+        String userIdentifier = resolveUserIdentifier(joinPoint.getArgs());
+        String actionName = joinPoint.getSignature().toShortString();
+
+        return executeWithLogging(
+                joinPoint,
+                "API_PERFORMANCE",
+                actionName,
+                null,
+                userIdentifier,
+                "REST_API_CALL"
+        );
+    }
+
+    private Object executeWithLogging(ProceedingJoinPoint joinPoint, String domain, String action,
+                                      String details, String userIdentifier, String logPrefix) throws Throwable {
         long start = System.currentTimeMillis();
-        try {
-            return joinPoint.proceed();
-        } finally {
-            long duration = System.currentTimeMillis() - start;
-            MDC.put("duration", String.valueOf(duration));
-            logger.info("REST_API_CALL: {} | Duration: {}ms",
-                    joinPoint.getSignature().toShortString(), duration);
-            MDC.remove("duration");
+
+        MDC.put("domain", domain);
+        MDC.put("action", action);
+        MDC.put("user", userIdentifier);
+        if(details != null && !details.isBlank()) {
+            MDC.put("details", details);
+        }
+
+        try{
+            Object result = joinPoint.proceed();
+
+            recordLog(start, logPrefix, action, "SUCCESS", null);
+            return result;
+        }catch (Throwable throwable){
+            recordLog(start, logPrefix, action, "FAIL", throwable);
+            throw throwable;
+        }finally {
+            removeFromMDC("domain", "user", "action", "duration", "status", "details");
         }
     }
 
-    private void recordLog(long startTime, String status, Throwable throwable) {
+    private void recordLog(long startTime, String logPrefix, String action, String status, Throwable throwable) {
         long duration = System.currentTimeMillis() - startTime;
         MDC.put("duration", String.valueOf(duration));
         MDC.put("status", status);
 
         if ("FAIL".equals(status)) {
-            String action = MDC.get("action");
             String errorMessage = (throwable != null) ? throwable.getMessage() : "Unknown error";
 
-
             if (isSystemError(throwable)) {
-                logger.error("BUSINESS_ACTION_FAILED: {} | Duration: {}ms | Error: {}",
-                        action, duration, errorMessage, throwable);
-            }
-            else {
-                // If it is a business error (400, 404, 409), the type must be 'WARN'
-                logger.warn("BUSINESS_ACTION_FAILED: {} | Duration: {}ms | Error: {}",
-                        action, duration, errorMessage);
+                logger.error("{}_FAILED: {} | Duration: {}ms | Error: {}", logPrefix, action, duration, errorMessage, throwable);
+            } else {
+                logger.warn("{}_FAILED: {} | Duration: {}ms | Error: {}", logPrefix, action, duration, errorMessage);
             }
 
         } else {
-            logger.info("BUSINESS_ACTION_SUCCESS: {} | Duration: {}ms",
-                    MDC.get("action"), duration);
+            logger.info("{}_SUCCESS: {} | Duration: {}ms", logPrefix, action, duration);
         }
     }
 

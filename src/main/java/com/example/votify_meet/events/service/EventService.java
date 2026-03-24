@@ -1,5 +1,6 @@
 package com.example.votify_meet.events.service;
 
+import com.example.votify_meet.common.logging.SystemActionLogger;
 import com.example.votify_meet.events.api.dto.EventRequestDto;
 import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.api.dto.UpdateEventRequestDto;
@@ -14,6 +15,7 @@ import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -25,19 +27,15 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EventService {
     private final EventsRepo eventsRepo;
     private final EventMapper eventMapper;
     private final UsersRepo  usersRepo;
     private final OptionRepository optionRepo;
+    private final SystemActionLogger systemActionLogger;
 
-    public EventService(EventsRepo eventsRepo, EventMapper eventMapper,
-                        UsersRepo usersRepo, OptionRepository optionRepo) {
-        this.eventsRepo = eventsRepo;
-        this.eventMapper = eventMapper;
-        this.usersRepo = usersRepo;
-        this.optionRepo = optionRepo;
-    }
+
 
     @Transactional
     public EventResponseDto createEvent(EventRequestDto eventRequestDto, String userId) {
@@ -51,6 +49,12 @@ public class EventService {
         Event event = eventsRepo.findByIdAndCreator(eventId, user).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
         List<Option> options = optionRepo.findAllByEvent_Id(eventId);
         return eventMapper.toResponse(event, options);
+    }
+
+    @Transactional
+    public List<EventResponseDto> getAll(Users user){
+        usersRepo.findById(user.getId()).orElseThrow(() -> new UserNotFoundException(String.format("User with id %s not found", user.getId())));
+        return eventsRepo.findAll().stream().map(event ->  eventMapper.toResponse(event, event.getOptions())).collect(Collectors.toList());
     }
 
     public EventResponseDto deleteUserEvent(Users user, String eventId) {
@@ -93,13 +97,21 @@ public class EventService {
     @Transactional
     public void revealExpiredSurpriseEvents(){
         List<Event> events = eventsRepo.findAllByTypeAndDeadlineBefore(EventType.SURPRISED, Instant.now()).orElse(Collections.emptyList());
+
         if(events.isEmpty()) {
             return;
         }
-        log.info("[SCHEDULER] Revealing expired {} surprise events",  events.size());
-        events.forEach(event -> event.setType(EventType.STANDARD));
 
-        eventsRepo.saveAll(events);
+        systemActionLogger.execute(
+                "EVENTS",
+                "SURPRISE_EVENTS_REVEALED",
+                "Revealed count: "+ events.size(),
+                "SYSTEM_SCHEDULER",
+                () -> {
+                    events.forEach(event -> event.setType(EventType.STANDARD));
+                    eventsRepo.saveAll(events);
+                }
+        );
     }
 
 }

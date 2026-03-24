@@ -24,7 +24,12 @@ public class EventController implements EventApi {
     }
 
     @Override
-    public List<EventResponseDto> getAllEvents(Users currentUser) {return eventService.getUserEvents(currentUser.getId());}
+    public List<EventResponseDto> getAllEvents(Users currentUser) {
+        return eventService.getAll(currentUser);
+    }
+
+    @Override
+    public List<EventResponseDto> getAllUserEvents(Users currentUser) {return eventService.getUserEvents(currentUser.getId());}
 
     @Override
     public EventResponseDto getEvent(Users user, String id) {

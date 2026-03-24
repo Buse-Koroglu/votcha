@@ -18,6 +18,7 @@ public class OptionMapper {
                 .content(entity.getContent())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .voteCount(entity.getVoteCount())
                 .build();
     }
     public Option toEntity(OptionRequestDto request, Event  event){
