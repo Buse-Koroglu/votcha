@@ -1,5 +1,6 @@
 package com.example.votify_meet.service;
 
+import com.example.votify_meet.events.api.dto.EventDetailResponseDto;
 import com.example.votify_meet.events.api.dto.EventRequestDto;
 import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.api.mapper.EventMapper;
@@ -11,11 +12,12 @@ import com.example.votify_meet.events.service.EventService;
 import com.example.votify_meet.options.api.dto.OptionRequestDto;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;
 import com.example.votify_meet.options.domain.model.Option;
-import com.example.votify_meet.options.domain.repository.OptionRepository;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.users.domain.model.Role;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
+import com.example.votify_meet.votes.api.dto.VoteResponseDto;
+import com.example.votify_meet.votes.service.VoteService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,13 +26,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -40,9 +40,10 @@ public class EventServiceTest {
     @Mock private EventsRepo eventsRepo;
     @Mock private UsersRepo usersRepo;
     @Mock private EventMapper eventMapper;
-    @Mock private OptionRepository optionRepo;
     @Mock private Users mockUser;
+    @Mock VoteService voteService;
     @InjectMocks private EventService eventService;
+
 
     @BeforeEach
     void setUp() {
@@ -148,6 +149,41 @@ public class EventServiceTest {
         assertThat(response.description()).isEqualTo(savedEvent.getDescription());
         assertThat(response.title()).isEqualTo("Surprise Party");
     }
+    @Test
+    @DisplayName("GIVEN valid event and owner user WHEN get event detail THEN return event details with votes")
+    void givenValidEventAndOwner_whenGetEventDetail_thenReturnEventDetails() {
+        // Arrange
+        String eventId = "e-123";
+        Users owner = Users.builder().id("user-1").build();
+        Event event = Event.builder()
+                .id(eventId)
+                .title("Team Meeting")
+                .creator(owner)
+                .build();
+
+
+        List<VoteResponseDto> allVotes = Arrays.asList(VoteResponseDto.builder().id("v1").optionId("o1").build(), VoteResponseDto.builder().id("v2").optionId("o2").build(), VoteResponseDto.builder().id("v3").optionId("o3").build());
+
+        EventDetailResponseDto expectedResponse = EventDetailResponseDto.builder()
+                .id(eventId)
+                .title("Team Meeting")
+                .build();
+
+        given(eventsRepo.findById(eventId)).willReturn(Optional.of(event));
+        given(voteService.getEventVotes(eventId)).willReturn(allVotes);
+        given(eventMapper.toDetailResponse(eq(event), any(Map.class))).willReturn(expectedResponse);
+
+        // Act
+        EventDetailResponseDto actualResponse = eventService.getEventDetail(owner, eventId);
+
+        // Assert
+        assertThat(actualResponse).isNotNull();
+        assertThat(actualResponse.id()).isEqualTo(eventId);
+
+        verify(eventsRepo).findById(eventId);
+        verify(voteService).getEventVotes(eventId);
+        verify(eventMapper).toDetailResponse(eq(event), any(Map.class));
+    }
 
     @Test
     @DisplayName("GIVEN non-existent user WHEN create event THEN throw UserNotFoundException")
@@ -203,5 +239,6 @@ public class EventServiceTest {
 
         verify(eventsRepo).delete(event);
     }
+
 
 }

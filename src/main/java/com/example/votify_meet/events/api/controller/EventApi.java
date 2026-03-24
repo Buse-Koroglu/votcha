@@ -1,5 +1,6 @@
 package com.example.votify_meet.events.api.controller;
 
+import com.example.votify_meet.events.api.dto.EventDetailResponseDto;
 import com.example.votify_meet.events.api.dto.EventRequestDto;
 import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.api.dto.UpdateEventRequestDto;
@@ -18,6 +19,10 @@ public interface EventApi {
     @PostMapping("/events")
     @ResponseStatus(HttpStatus.CREATED)
     EventResponseDto createEvent(@AuthenticationPrincipal Users currentUser, @Valid @RequestBody EventRequestDto eventRequestDto);
+
+    @GetMapping("/events/{id}/details")
+    @ResponseStatus(HttpStatus.OK)
+    EventDetailResponseDto getEventDetails(@AuthenticationPrincipal Users currentUser, @PathVariable("id") String eventId);
 
     @GetMapping("/events")
     @ResponseStatus(HttpStatus.OK)

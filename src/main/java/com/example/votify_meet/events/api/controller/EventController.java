@@ -1,6 +1,7 @@
 package com.example.votify_meet.events.api.controller;
 
 import com.example.votify_meet.common.logging.BusinessAction;
+import com.example.votify_meet.events.api.dto.EventDetailResponseDto;
 import com.example.votify_meet.events.api.dto.EventRequestDto;
 import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.api.dto.UpdateEventRequestDto;
@@ -21,6 +22,11 @@ public class EventController implements EventApi {
     public EventResponseDto createEvent(Users currentUser, EventRequestDto eventRequestDto) {
         String userId = currentUser.getId();
         return eventService.createEvent(eventRequestDto, userId);
+    }
+
+    @Override
+    public EventDetailResponseDto getEventDetails(Users user, String eventId) {
+        return eventService.getEventDetail(user, eventId);
     }
 
     @Override

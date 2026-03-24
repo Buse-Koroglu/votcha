@@ -15,6 +15,7 @@ public class VoteMapper {
         return VoteResponseDto.builder()
                 .id(entity.getId())
                 .optionId(entity.getOption().getId())
+                .voterId(entity.getVoter().getId())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

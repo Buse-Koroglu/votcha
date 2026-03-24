@@ -32,6 +32,8 @@ public class OptionServiceTest {
     @Mock private OptionMapper optionMapper;
     @InjectMocks private OptionService optionService;
 
+    private final Integer VOTE_COUNT = 1;
+
     @Test
     @DisplayName("GIVEN event owner WHEN create option THEN return success option response")
     void givenEventOwner_whenCreateOption_thenReturnSuccess(){
@@ -43,7 +45,7 @@ public class OptionServiceTest {
         OptionRequestDto requestDto = new OptionRequestDto("Option A");
 
         Option mockOption = Option.builder().id("opt-1").content("Option A").event(event).build();
-        OptionResponseDto expectedResponse = new OptionResponseDto("opt-1","Option A", null, null);
+        OptionResponseDto expectedResponse = new OptionResponseDto("opt-1","Option A", null, null, VOTE_COUNT);
 
         // Act
         given(eventsRepo.findById(eventId)).willReturn(Optional.of(event));

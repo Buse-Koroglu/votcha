@@ -1,26 +1,34 @@
 package com.example.votify_meet.events.api.mapper;
 
+import com.example.votify_meet.events.api.dto.EventDetailResponseDto;
 import com.example.votify_meet.events.api.dto.EventRequestDto;
 import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.api.dto.UpdateEventRequestDto;
 import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.events.domain.model.EventType;
 import com.example.votify_meet.events.domain.model.Status;
+import com.example.votify_meet.options.api.dto.OptionDetailResponseDto;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;
 import com.example.votify_meet.options.api.mapper.OptionMapper;
 import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.users.domain.model.Users;
+import com.example.votify_meet.votes.api.dto.VoteResponseDto;
+import com.example.votify_meet.votes.domain.repository.VoteRepository;
+import com.example.votify_meet.votes.service.VoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class EventMapper {
     private final OptionMapper optionMapper;
+    private final VoteRepository voteRepository;
 
     public EventResponseDto toResponse(Event entity, List<Option> options) {
         List<OptionResponseDto> optionDtos = options.stream()
@@ -44,8 +52,38 @@ public class EventMapper {
                 .build();
     }
 
+    public EventDetailResponseDto toDetailResponse(Event entity, Map<String, List<VoteResponseDto>> votesByOptionId) {
+
+        /// Finds the options with the votes of option
+        List<OptionDetailResponseDto> optionDtos = entity.getOptions().stream()
+                .map(option -> {
+                    List<VoteResponseDto> optionVotes = votesByOptionId.getOrDefault(
+                            option.getId(),
+                            Collections.emptyList()
+                    );
+                    ///  Converts option and votes to OptionDetailResponse
+                    return optionMapper.toDetailResponse(option, optionVotes);
+                })
+                .toList();
+        /// Make the description private if it is SURPRISED
+        String desc = isSurprised(entity) ? null : entity.getDescription();
+
+        return EventDetailResponseDto.builder()
+                .id(entity.getId())
+                .title(entity.getTitle())
+                .description(desc)
+                .deadline(entity.getDeadline())
+                .type(entity.getType())
+                .status(entity.getStatus())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .creatorId(entity.getCreator().getId())
+                .options(optionDtos)
+                .build();
+    }
+
     public Event toEntity(EventRequestDto request, Users user) {
-        // Create the event with an empty option
+        /// Create the event with an empty option
         Event event = Event.builder()
                 .title(request.title())
                 .status(Status.OPEN)
@@ -55,18 +93,18 @@ public class EventMapper {
                 .creator(user)
                 .build();
 
-        // Create the options
+        /// Create the options
         List<Option> eventOptions = request.options().stream()
                 .map(optDto -> Option.builder()
                         .content(optDto.content())
                         .build())
                 .toList();
-        // Set the options to the related event then return
+        /// Set the options to the related event then return
         event.addOptions(eventOptions);
         return event;
     }
 
-    // Trim the blanks if a user enters spaces
+    /// Trim the blanks if a user enters spaces
     private String normalize(String value){
         if(value != null && value.trim().isEmpty()){
             return null;
@@ -84,11 +122,11 @@ public class EventMapper {
         if(description != null){
             entity.setDescription(description);
         }
-        // for update deadline
+        /// for update deadline
         if(request.deadline() != null) {
             entity.setDeadline(request.deadline());
         }
-        // for update option list
+        /// for update option list
         if (request.options() != null && !request.options().isEmpty()) {
             entity.getOptions().clear();
 
@@ -107,5 +145,9 @@ public class EventMapper {
 
         entity.setUpdatedAt(Instant.now());
 
+    }
+
+    private boolean isSurprised(Event event){
+        return event.getType().equals(EventType.SURPRISED);
     }
 }

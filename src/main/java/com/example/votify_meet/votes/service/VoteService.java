@@ -1,5 +1,6 @@
 package com.example.votify_meet.votes.service;
 
+import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
 import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.options.domain.repository.OptionRepository;
@@ -15,6 +16,10 @@ import com.example.votify_meet.votes.domain.model.Vote;
 import com.example.votify_meet.votes.domain.repository.VoteRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -47,6 +52,11 @@ public class VoteService {
 
     public VoteResponseDto getUserVote(Users user, String id){
         return voteMapper.toResponse(voteRepository.findByIdAndVoter(id, user).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id))));
+    }
+
+    // todo - test et eventDetailDto için
+    public List<VoteResponseDto> getEventVotes(String eventId){
+        return voteRepository.findAllByOption_Event_Id(eventId).orElse(Collections.emptyList()).stream().map(voteMapper::toResponse).toList();
     }
 
 

@@ -44,7 +44,7 @@ public class VoteControllerTest {
 
     @BeforeEach
     public void setup() {
-        standardResponse = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);
+        standardResponse = new VoteResponseDto(VOTE_ID,OPTION_ID,USER_ID,null,null);
         mockUser = Users.builder()
                 .id(USER_ID)
                 .firstName("John")
@@ -95,7 +95,7 @@ public class VoteControllerTest {
     @DisplayName("Retrieve an existing vote - 200 Ok should return")
     void getVote_returns200_whenVoteExist() throws Exception{
         // Arrange
-        VoteResponseDto response = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);
+        VoteResponseDto response = new VoteResponseDto(VOTE_ID,OPTION_ID,USER_ID, null,null);
 
         // Act
         when(voteService.getUserVote(mockUser, VOTE_ID)).thenReturn(response);
@@ -128,7 +128,7 @@ public class VoteControllerTest {
     @Test
     @DisplayName("Delete vote - 200 Ok should return")
     void deleteVote_returns200_whenVoteDeleted() throws  Exception{
-        VoteResponseDto response = new VoteResponseDto(VOTE_ID,OPTION_ID,null,null);
+        VoteResponseDto response = new VoteResponseDto(VOTE_ID,OPTION_ID,USER_ID,null,null);
         when(voteService.deleteUserVote(mockUser, VOTE_ID)).thenReturn(response);
         mockMvc.perform(delete("/api/votes/{id}",VOTE_ID)
                         .with(csrf())

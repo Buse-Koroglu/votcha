@@ -44,12 +44,13 @@ public class OptionControllerTest {
     private final String EVENT_ID = "1";
     private final String OPTION_ID = "1";
     private final String USER_ID = "2";
+    private final Integer VOTE_COUNT = 1;
     private OptionResponseDto standardResponse;
     private Users mockUser;
 
     @BeforeEach
     public void setup() {
-        standardResponse = new OptionResponseDto("1","A",null,null);
+        standardResponse = new OptionResponseDto("1","A",null,null, VOTE_COUNT);
         mockUser = Users.builder()
                 .id(USER_ID)
                 .email("john.doe@gmail.com")

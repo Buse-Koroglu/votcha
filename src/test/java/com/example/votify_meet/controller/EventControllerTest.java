@@ -2,6 +2,7 @@ package com.example.votify_meet.controller;
 
 import com.example.votify_meet.auth.service.JwtService;
 import com.example.votify_meet.events.api.controller.EventController;
+import com.example.votify_meet.events.api.dto.EventDetailResponseDto;
 import com.example.votify_meet.events.api.dto.EventRequestDto;
 import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.api.dto.UpdateEventRequestDto;
@@ -10,6 +11,7 @@ import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.events.domain.model.EventType;
 import com.example.votify_meet.events.domain.model.Status;
 import com.example.votify_meet.events.service.EventService;
+import com.example.votify_meet.options.api.dto.OptionDetailResponseDto;
 import com.example.votify_meet.options.api.dto.OptionRequestDto;
 import com.example.votify_meet.options.api.dto.OptionResponseDto;
 import com.example.votify_meet.users.domain.model.Role;
@@ -55,6 +57,7 @@ public class EventControllerTest {
 
     private final String EVENT_ID = "1";
     private final String USER_ID = "1";
+    private final Integer VOTE_COUNT = 1;
     private Instant deadline;
     private EventResponseDto standardResponse;
     private  Users mockUser;
@@ -69,8 +72,8 @@ public class EventControllerTest {
         standardResponse = new EventResponseDto(
                 EVENT_ID, "Meet Event","Today",Status.OPEN,
                 EventType.STANDARD, null, null, deadline, USER_ID, List.of(
-                new OptionResponseDto("opt1", "Option 1", null, null),
-                new OptionResponseDto("opt2", "Option 2", null, null)
+                new OptionResponseDto("opt1", "Option 1", null, null, VOTE_COUNT),
+                new OptionResponseDto("opt2", "Option 2", null, null, VOTE_COUNT)
         )
         );
         mockUser = Users.builder()
@@ -131,6 +134,37 @@ public class EventControllerTest {
                 .andExpect(jsonPath("$.id").value(EVENT_ID))
                 .andExpect(jsonPath("$.description").value("Today"))
                 .andExpect(jsonPath("$.deadline").value(deadline.toString()));
+    }
+
+    @Test
+    @DisplayName("Retrieve an Existing  Details - It should return 200 OK and event data.")
+    void getEventDetails_returns200_whenEventExist() throws Exception{
+        // Arrange
+        EventDetailResponseDto standardResponse = new EventDetailResponseDto(
+                EVENT_ID, "Meet Event","Today",Status.OPEN,
+                EventType.STANDARD, null, null, deadline, USER_ID, List.of(
+                 OptionDetailResponseDto.builder()
+                         .option(new OptionResponseDto("opt1", "Option 1", null, null, VOTE_COUNT))
+                         .votes(Collections.emptyList()).build(),
+                OptionDetailResponseDto.builder()
+                        .option(new OptionResponseDto("opt2", "Option 2", null, null, VOTE_COUNT))
+                        .votes(Collections.emptyList()).build()
+
+                )
+        );
+
+        // Act
+        when(eventService.getEventDetail(mockUser, EVENT_ID)).thenReturn(standardResponse);
+
+        // Assert
+        mockMvc.perform(get("/api/events/{id}/details",EVENT_ID)
+                        .with(csrf())
+                        .with(user(mockUser))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(EVENT_ID))
+                .andExpect(jsonPath("$.description").value("Today"))
+                .andExpect(jsonPath("$.options.size()").value(2));
     }
 
     @Test

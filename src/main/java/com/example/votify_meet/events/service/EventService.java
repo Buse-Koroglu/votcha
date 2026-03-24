@@ -1,6 +1,8 @@
 package com.example.votify_meet.events.service;
 
+import com.example.votify_meet.common.exception.AppAccessDeniedException;
 import com.example.votify_meet.common.logging.SystemActionLogger;
+import com.example.votify_meet.events.api.dto.EventDetailResponseDto;
 import com.example.votify_meet.events.api.dto.EventRequestDto;
 import com.example.votify_meet.events.api.dto.EventResponseDto;
 import com.example.votify_meet.events.api.dto.UpdateEventRequestDto;
@@ -14,6 +16,8 @@ import com.example.votify_meet.options.domain.repository.OptionRepository;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
+import com.example.votify_meet.votes.api.dto.VoteResponseDto;
+import com.example.votify_meet.votes.service.VoteService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +38,7 @@ public class EventService {
     private final UsersRepo  usersRepo;
     private final OptionRepository optionRepo;
     private final SystemActionLogger systemActionLogger;
-
-
+    private final VoteService  voteService;
 
     @Transactional
     public EventResponseDto createEvent(EventRequestDto eventRequestDto, String userId) {
@@ -45,10 +48,29 @@ public class EventService {
     }
 
     public EventResponseDto getUserEvent(Users user, String eventId) {
-
         Event event = eventsRepo.findByIdAndCreator(eventId, user).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+        if(!event.getCreator().getId().equals(user.getId())) {
+            throw new AppAccessDeniedException("You are not allowed to access this event.");
+        }
         List<Option> options = optionRepo.findAllByEvent_Id(eventId);
         return eventMapper.toResponse(event, options);
+    }
+
+    ///  Retrieves the Events Details (Options with Voters)
+    @Transactional
+    public EventDetailResponseDto getEventDetail(Users user, String eventId) {
+        Event event = eventsRepo.findById(eventId).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s", eventId)));
+
+        if(!user.getId().equals(event.getCreator().getId())) {
+            throw new AppAccessDeniedException("You are not allowed to access this event.");
+        }
+
+        /// Groups the option and its voters
+        List<VoteResponseDto> allVotes = voteService.getEventVotes(event.getId());
+        Map<String, List<VoteResponseDto>> votesByOptionId = allVotes.stream()
+                .collect(Collectors.groupingBy(VoteResponseDto::optionId));
+
+        return eventMapper.toDetailResponse(event, votesByOptionId);
     }
 
     @Transactional
