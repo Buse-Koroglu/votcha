@@ -6,6 +6,7 @@ import com.example.votify_meet.auth.domain.exception.TokenRevokedException;
 import com.example.votify_meet.events.domain.exception.EventNotFoundException;
 import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
 import com.example.votify_meet.options.domain.exception.UnauthorizedException;
+import com.example.votify_meet.users.domain.exception.InvalidPasswordException;
 import com.example.votify_meet.users.domain.exception.UserIsAlreadyExistsException;
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.votes.domain.exception.AlreadyVotedException;
@@ -121,12 +122,27 @@ public class GlobalExceptionHandler {
                         errors.put(error.getField(), error.getDefaultMessage())
                 );
 
-        String cleanMessage = "Validation Error: " + errors.toString();
+        String cleanMessage = "Validation Error: " + errors;
         logException(ex, HttpStatus.BAD_REQUEST, cleanMessage);
         return new ErrorResponse(
                 java.time.LocalDateTime.now().toString(),
                 HttpStatus.BAD_REQUEST.value(),
                 "VALIDATION_ERROR",
+                cleanMessage,
+                request.getDescription(false).replace("uri=", "")
+        );
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleInvalidPasswordException(InvalidPasswordException ex, WebRequest request) {
+        String cleanMessage = ex.getMessage();
+        logException(ex, HttpStatus.BAD_REQUEST, cleanMessage);
+
+        return new ErrorResponse(
+                java.time.LocalDateTime.now().toString(),
+                HttpStatus.BAD_REQUEST.value(),
+                "INVALID_PASSWORD",
                 cleanMessage,
                 request.getDescription(false).replace("uri=", "")
         );

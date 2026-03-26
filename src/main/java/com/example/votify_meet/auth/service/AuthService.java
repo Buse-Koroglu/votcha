@@ -10,6 +10,7 @@ import com.example.votify_meet.users.domain.exception.UserIsAlreadyExistsExcepti
 import com.example.votify_meet.users.domain.exception.UserNotFoundException;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.users.domain.repository.UsersRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,6 +53,7 @@ public class AuthService {
         return new AuthResponseDto(jwtToken, refreshToken.getToken(), "User successfully login");
     }
 
+    @Transactional
     public AuthResponseDto refresh(String refreshToken) {
         var token = refreshTokenService.validateAndRotate(refreshToken);
         String accessToken = jwtService.generateToken(token.getUser());

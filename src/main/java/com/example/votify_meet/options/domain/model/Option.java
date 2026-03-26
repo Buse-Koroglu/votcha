@@ -41,6 +41,7 @@ public class Option {
     @Formula("(SELECT COUNT(v.id) FROM vote v WHERE v.option_id = id)")
     private Integer voteCount;
 
+    public Integer getVoteCount() {return voteCount == null ? 0 : voteCount;}
     public String getUserId() {
         return event.getCreator().getId();
     }

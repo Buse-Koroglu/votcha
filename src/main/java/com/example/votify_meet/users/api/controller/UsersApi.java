@@ -1,5 +1,6 @@
 package com.example.votify_meet.users.api.controller;
 
+import com.example.votify_meet.users.api.dto.ChangePasswordRequestDto;
 import com.example.votify_meet.users.api.dto.UpdateUsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.domain.model.Users;
@@ -24,4 +25,8 @@ public interface UsersApi {
     @PatchMapping("/me")
     @ResponseStatus(HttpStatus.OK)
     UsersResponseDto updateUser(@AuthenticationPrincipal Users user, @Valid @RequestBody UpdateUsersRequestDto request);
+
+    @PutMapping("/me/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    Void updatePassword( @AuthenticationPrincipal Users user, @Valid @RequestBody ChangePasswordRequestDto dto);
 }

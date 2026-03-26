@@ -84,7 +84,7 @@ public class EventService {
         eventsRepo.delete(event);
         return eventMapper.toResponse(event, Collections.emptyList());
     }
-
+    @Transactional
     public EventResponseDto updateUserEvents(Users user, String eventId, UpdateEventRequestDto request){
         Event entity = eventsRepo.findByIdAndCreator(eventId, user).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
         eventMapper.update(request, entity);

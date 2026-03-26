@@ -1,6 +1,7 @@
 package com.example.votify_meet.users.api.controller;
 
 import com.example.votify_meet.common.logging.BusinessAction;
+import com.example.votify_meet.users.api.dto.ChangePasswordRequestDto;
 import com.example.votify_meet.users.api.dto.UpdateUsersRequestDto;
 import com.example.votify_meet.users.api.dto.UsersResponseDto;
 import com.example.votify_meet.users.domain.model.Users;
@@ -29,5 +30,11 @@ public class UsersController implements UsersApi {
     @Override
     public UsersResponseDto updateUser(Users user, UpdateUsersRequestDto request) {
         return usersService.patchUser(user.getId(), request);
+    }
+    @BusinessAction(action = "PASSWORD_UPDATED", domain = "USERS", logDetails = "'Target User ID: ' + #user.id")
+    @Override
+    public Void updatePassword(Users user, ChangePasswordRequestDto dto) {
+        usersService.changePassword(user.getId(), dto);
+        return null;
     }
 }

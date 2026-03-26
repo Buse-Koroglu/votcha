@@ -13,6 +13,7 @@ import com.example.votify_meet.options.domain.exception.UnauthorizedException;
 import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.options.domain.repository.OptionRepository;
 import com.example.votify_meet.users.domain.model.Users;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +45,7 @@ public class OptionService {
         return optionMapper.toResponse(option);
     }
 
+    @Transactional
     public OptionResponseDto patchUserOption(Users user, String id, UpdateOptionRequestDto request){
         Option option = getOwnedOption(user, id);
         optionMapper.update(request,option);

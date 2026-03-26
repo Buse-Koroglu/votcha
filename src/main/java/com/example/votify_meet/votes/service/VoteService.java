@@ -1,6 +1,5 @@
 package com.example.votify_meet.votes.service;
 
-import com.example.votify_meet.events.domain.model.Event;
 import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
 import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.options.domain.repository.OptionRepository;
@@ -15,28 +14,21 @@ import com.example.votify_meet.votes.domain.exception.VoteNotFoundException;
 import com.example.votify_meet.votes.domain.model.Vote;
 import com.example.votify_meet.votes.domain.repository.VoteRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
+@RequiredArgsConstructor
 public class VoteService {
     private final VoteRepository voteRepository;
     private final VoteMapper voteMapper;
     private final OptionRepository optionRepository;
-    private UsersRepo  usersRepo;
+    private final UsersRepo  usersRepo;
 
-
-    public VoteService(VoteRepository voteRepository, VoteMapper voteMapper,
-                       OptionRepository optionRepository, UsersRepo usersRepo) {
-        this.voteRepository = voteRepository;
-        this.voteMapper = voteMapper;
-        this.optionRepository = optionRepository;
-        this.usersRepo = usersRepo;
-    }
 
     @Transactional
     public VoteResponseDto createVote(VoteRequestDto request, String userId){
@@ -65,6 +57,7 @@ public class VoteService {
         voteRepository.delete(vote);
         return voteMapper.toResponse(vote);
     }
+    @Transactional
     public VoteResponseDto  updateVote(Users user, String id, VoteRequestDto request){
         Vote vote = voteRepository.findByIdAndVoter(id, user).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id)));
         Option option = optionRepository.findById(request.optionId()).orElseThrow(() -> new OptionNotFoundException(String.format("Option with id %s not found", id)));

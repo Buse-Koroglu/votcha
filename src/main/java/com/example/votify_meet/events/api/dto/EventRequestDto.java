@@ -14,9 +14,11 @@ import java.util.List;
 @Builder
 public record EventRequestDto(
         @NotBlank(message = "title is required")
+        @Size(max = 50, message = "title cannot exceed 50 characters")
         String title,
 
         @NotBlank(message = "description is required")
+        @Size(max = 100, message = "description cannot exceed 100 characters")
         String description,
 
         @NotNull(message = "deadline is required")
