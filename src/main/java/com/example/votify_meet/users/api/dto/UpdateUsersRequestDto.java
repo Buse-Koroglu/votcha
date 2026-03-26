@@ -7,4 +7,4 @@ import jakarta.validation.constraints.Size;
 public record UpdateUsersRequestDto(@Size(min = 2,max = 50, message = "at least 2 character") String firstName,
                                     @Size(min = 2,max = 50, message = "at least 2 character") String lastName,
                                     @Email String email,
-                                    @NotBlank(message = "password is required") @Size(min = 4,max = 12, message = "at least 4, max 12 character") String password) {}
+                                    @Size(min = 4,max = 12, message = "at least 4, max 12 character") String password) {}
