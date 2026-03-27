@@ -36,3 +36,4 @@ build/
 
 ### frontend ###
 /frontend/
+/k8s/
