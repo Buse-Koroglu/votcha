@@ -15,8 +15,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
 @Aspect
 @Component
 public class LoggingAspect {

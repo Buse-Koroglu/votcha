@@ -3,7 +3,6 @@ import com.example.votify_meet.options.domain.model.Option;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface OptionRepository extends JpaRepository<Option,String> {
     List<Option> findAllByEvent_Id(String eventId);

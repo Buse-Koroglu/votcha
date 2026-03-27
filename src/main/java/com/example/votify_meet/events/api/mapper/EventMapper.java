@@ -14,7 +14,6 @@ import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.votes.api.dto.VoteResponseDto;
 import com.example.votify_meet.votes.domain.repository.VoteRepository;
-import com.example.votify_meet.votes.service.VoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,6 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor

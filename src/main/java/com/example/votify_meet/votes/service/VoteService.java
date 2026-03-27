@@ -1,5 +1,6 @@
 package com.example.votify_meet.votes.service;
 
+import com.example.votify_meet.events.domain.exception.EventDeadlinePassedException;
 import com.example.votify_meet.options.domain.exception.OptionNotFoundException;
 import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.options.domain.repository.OptionRepository;
@@ -33,10 +34,16 @@ public class VoteService {
     @Transactional
     public VoteResponseDto createVote(VoteRequestDto request, String userId){
         Option option = optionRepository.findById(request.optionId()).orElseThrow( () -> new OptionNotFoundException(String.format("Option with id %s not found", request.optionId())));
+
+        if(option.getEvent().isExpired()){
+            throw new EventDeadlinePassedException(String.format("Option with id %s is expired", request.optionId()));
+        }
+
         boolean alreadyVoted = voteRepository.existsByVoterIdAndOption_Event_Id(userId,option.getEvent().getId());
         if(alreadyVoted){
             throw new AlreadyVotedException("User can not vote more than one time.");
         }
+
         Users voter = usersRepo.findById(userId).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", userId)));
         Vote vote = voteMapper.toEntity(option, voter);
         return voteMapper.toResponse(voteRepository.saveAndFlush(vote));
@@ -46,7 +53,6 @@ public class VoteService {
         return voteMapper.toResponse(voteRepository.findByIdAndVoter(id, user).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id))));
     }
 
-    // todo - test et eventDetailDto için
     public List<VoteResponseDto> getEventVotes(String eventId){
         return voteRepository.findAllByOption_Event_Id(eventId).orElse(Collections.emptyList()).stream().map(voteMapper::toResponse).toList();
     }
@@ -61,6 +67,11 @@ public class VoteService {
     public VoteResponseDto  updateVote(Users user, String id, VoteRequestDto request){
         Vote vote = voteRepository.findByIdAndVoter(id, user).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id)));
         Option option = optionRepository.findById(request.optionId()).orElseThrow(() -> new OptionNotFoundException(String.format("Option with id %s not found", id)));
+
+        if(option.getEvent().isExpired()){
+            throw new EventDeadlinePassedException(String.format("Option with id %s is expired", request.optionId()));
+        }
+
         voteMapper.update(option, vote);
         return voteMapper.toResponse(voteRepository.saveAndFlush(vote));
     }

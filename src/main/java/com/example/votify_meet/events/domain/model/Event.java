@@ -55,5 +55,6 @@ public class Event {
         newOptions.forEach(option -> option.setEvent(this));
 
     }
+    public boolean isExpired(){return Instant.now().isAfter(deadline);}
 
 }

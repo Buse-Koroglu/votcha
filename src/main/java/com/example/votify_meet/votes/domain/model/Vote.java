@@ -1,6 +1,5 @@
 package com.example.votify_meet.votes.domain.model;
 
-
 import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.users.domain.model.Users;
 import jakarta.persistence.*;

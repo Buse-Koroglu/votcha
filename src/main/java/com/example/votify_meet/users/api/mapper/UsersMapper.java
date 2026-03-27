@@ -53,10 +53,6 @@ public class UsersMapper {
             entity.setEmail(email);
         }
 
-        String password = normalize(request.password());
-        if(password != null) {
-            entity.setPassword(password);
-        }
         entity.setUpdatedAt(Instant.now());
     }
 }

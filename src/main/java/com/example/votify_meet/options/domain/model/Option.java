@@ -1,6 +1,5 @@
 package com.example.votify_meet.options.domain.model;
 import com.example.votify_meet.events.domain.model.Event;
-import com.example.votify_meet.users.domain.model.Users;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.*;
@@ -45,8 +44,6 @@ public class Option {
     public String getUserId() {
         return event.getCreator().getId();
     }
-    public String getEventId() {
-        return event.getId();
-    }
+    public String getEventId() {return event.getId();}
 
 }

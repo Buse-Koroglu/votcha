@@ -1,5 +1,4 @@
 package com.example.votify_meet.votes.domain.repository;
-import com.example.votify_meet.options.domain.model.Option;
 import com.example.votify_meet.users.domain.model.Users;
 import com.example.votify_meet.votes.domain.model.Vote;
 import org.springframework.data.jpa.repository.JpaRepository;
