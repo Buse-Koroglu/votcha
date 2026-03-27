@@ -38,7 +38,7 @@ public class UserServiceTest {
         String userId = "u-123";
 
         Users existingUser = Users.builder().id(userId).firstName("John").lastName("Doe").email("doe@gmail.com").build();
-        UpdateUsersRequestDto request = new UpdateUsersRequestDto("Kate", null, null, null);
+        UpdateUsersRequestDto request = new UpdateUsersRequestDto("Kate", null, null);
 
         UsersResponseDto expectedResponse = new UsersResponseDto(userId, "Kate", "Doe", "doe@gmail.com", null, null);
 

@@ -111,7 +111,7 @@ public class UserControllerTest {
     @DisplayName("Partial User Update- 200 OK should return")
     void patchUser_returns200_whenUserPatched() throws Exception {
         // Arrange
-        UpdateUsersRequestDto request = new UpdateUsersRequestDto(FIRST_NAME, LAST_NAME, EMAIL, "145*9o");
+        UpdateUsersRequestDto request = new UpdateUsersRequestDto(FIRST_NAME, LAST_NAME, EMAIL);
 
         // Act
         when(usersService.patchUser(eq(USER_ID), any(UpdateUsersRequestDto.class))).thenReturn(standardResponse);
@@ -130,7 +130,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("Partial User Update with Invalid Data - 400 Bad Request should return")
     void patchUser_returns400_whenInvalidRequest() throws Exception {
-        UpdateUsersRequestDto request = new UpdateUsersRequestDto("", "", "", "");
+        UpdateUsersRequestDto request = new UpdateUsersRequestDto("", "", "");
 
         mockMvc.perform(patch("/api/users/me")
                         .with(csrf())

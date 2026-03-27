@@ -46,6 +46,7 @@ public class VoteServiceTest {
 
     }
 
+    // todo - Deadlinesi geçene oy
     // todo - Başarılı oy
     // todo - OptionNotFound
     // todo - Past deadline
