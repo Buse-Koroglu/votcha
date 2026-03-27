@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres
@@ -39,7 +39,7 @@ jobs:
 
   build-and-push-docker:
     needs: build-and-test # wait for the passing tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     # Only if it is sent to main branch
     if: github.ref == 'refs/heads/main'
