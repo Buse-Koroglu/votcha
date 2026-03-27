@@ -36,6 +36,7 @@ public class VoteServiceTest {
         Event event = Event.builder().id(eventId).build();
         Option secondOption = Option.builder().id(optionId).event(event).build();
 
+
         VoteRequestDto request = new VoteRequestDto("op-2");
         given(optionRepository.findById(optionId)).willReturn(Optional.of(secondOption));
         given(voteRepository.existsByVoterIdAndOption_Event_Id(userId,eventId)).willReturn(true);
