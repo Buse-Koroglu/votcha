@@ -62,5 +62,5 @@ jobs:
           push: true
           # Sends the image to the packages in the repo
           tags: |
-            ghcr.io/${{ github.repository }}/votcha-api:latest
-            ghcr.io/${{ github.repository }}/votcha-api:${{ github.sha }}
+            ghcr.io/buse-koroglu/votify-meet/votcha-api:latest
+            ghcr.io/buse-koroglu/votify-meet/votcha-api:${{ github.sha }}
