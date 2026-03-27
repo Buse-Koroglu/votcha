@@ -165,7 +165,7 @@ public class AuthControllerTest {
         mockMvc.perform(post("/api/auth/refresh")
                         .cookie(new Cookie("refreshToken", "revoked-token")))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("ACCESS_DENIED"));
+                .andExpect(jsonPath("$.error").value("TOKEN_REVOKED"));
     }
 
 
