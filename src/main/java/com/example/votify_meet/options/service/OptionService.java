@@ -38,7 +38,7 @@ public class OptionService {
         }
         return optionMapper.toResponse(optionRepository.saveAndFlush(optionMapper.toEntity(request, event)));
     }
-
+    @Transactional
     public OptionResponseDto deleteUserOption(Users user, String id){
         Option option = getOwnedOption(user, id);
         optionRepository.delete(option);

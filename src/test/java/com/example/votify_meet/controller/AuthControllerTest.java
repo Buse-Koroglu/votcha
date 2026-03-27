@@ -55,7 +55,7 @@ public class AuthControllerTest {
     @DisplayName("Register - Should return 201 when request is valid")
     void register_returns201_whenValidRequest() throws Exception {
         // Arrange
-        UsersRequestDto request = new UsersRequestDto("Enes", "Test", "enes@test.com", "password123");
+        UsersRequestDto request = new UsersRequestDto("Enes", "Test", "enes@test.com", "password123","password123");
         when(authService.register(any(UsersRequestDto.class))).thenReturn(successRegisterResponse);
 
         // Act & Assert
