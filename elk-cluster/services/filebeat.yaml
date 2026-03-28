@@ -1,7 +1,7 @@
 services:
   filebeat:
     image: elastic/filebeat:${STACK_VERSION}
-    container_name: votify_meet-filebeat
+    container_name: votcha-filebeat
     command: filebeat -e --strict.perms=false
     user: root
     volumes:

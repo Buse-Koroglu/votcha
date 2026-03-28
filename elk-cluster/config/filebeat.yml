@@ -1,6 +1,6 @@
 filebeat.inputs:
   - type: filestream
-    id: wedorgo-votify_meet-logs
+    id: wedorgo-votcha-logs
     paths:
       - "/var/log/wedorgo/*.json"
       - "/var/log/wedorgo/archived/*.json"

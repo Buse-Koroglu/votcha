@@ -1,10 +1,10 @@
 services:
   app:
     build: .
-    container_name: votify_meet
+    container_name: votcha
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/votify_meet
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
@@ -13,30 +13,30 @@ services:
       db:
         condition: service_healthy
     networks:
-      - votify_meet_network
+      - votcha_network
     volumes:
       - ./logs:/app/logs
   db:
-    container_name: votify_meet_db
+    container_name: votcha_db
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - votify_meet_vol:/var/lib/postgresql/data
+      - votcha_vol:/var/lib/postgresql/data
     ports:
       - "${DB_PORT}:5432"
     networks:
-      - votify_meet_network
+      - votcha_network
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d votify_meet" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d votcha" ]
       interval: 30s
       timeout: 10s
       retries: 5
 networks:
-  votify_meet_network:
+  votcha_network:
     driver: bridge
 volumes:
-  votify_meet_vol:
+  votcha_vol:

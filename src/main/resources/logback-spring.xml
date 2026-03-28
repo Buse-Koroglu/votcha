@@ -20,7 +20,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.example.votify_meet" level="INFO" additivity="false">
+    <logger name="com.example.votcha" level="INFO" additivity="false">
         <appender-ref ref="JSON_FILE" />
         <appender-ref ref="CONSOLE" />
     </logger>
