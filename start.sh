@@ -1,1 +1,1 @@
-docker compose --env-file .env.ci up
+docker compose --env-file .env.ci up -d
