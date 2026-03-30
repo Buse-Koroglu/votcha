@@ -26,7 +26,7 @@ services:
     build:
       context: ./frontend/votify-meet-client/.
       args:
-        VITE_BACKEND: /api
+        MODE: docker
     container_name: votcha-frontend
     ports:
       - "${FRONTEND_PORT}:80"
