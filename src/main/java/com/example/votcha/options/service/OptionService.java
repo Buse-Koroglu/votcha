@@ -8,6 +8,7 @@ import com.example.votcha.options.api.dto.OptionRequestDto;
 import com.example.votcha.options.api.dto.OptionResponseDto;
 import com.example.votcha.options.api.dto.UpdateOptionRequestDto;
 import com.example.votcha.options.api.mapper.OptionMapper;
+import com.example.votcha.options.domain.exception.MinimumOptionsException;
 import com.example.votcha.options.domain.exception.OptionNotFoundException;
 import com.example.votcha.options.domain.exception.UnauthorizedException;
 import com.example.votcha.options.domain.model.Option;
@@ -41,6 +42,13 @@ public class OptionService {
     @Transactional
     public OptionResponseDto deleteUserOption(Users user, String id){
         Option option = getOwnedOption(user, id);
+        Event event = option.getEvent();
+
+        long optionCount = optionRepository.countByEventId(event.getId());
+
+        if(optionCount <= 2){
+            throw new MinimumOptionsException(String.format("Event '%s' must maintain at least 2 options.", event.getTitle()));
+        }
         optionRepository.delete(option);
         return optionMapper.toResponse(option);
     }

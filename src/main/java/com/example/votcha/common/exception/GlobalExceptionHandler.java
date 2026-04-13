@@ -5,6 +5,7 @@ import com.example.votcha.auth.domain.exception.TokenNotFoundException;
 import com.example.votcha.auth.domain.exception.TokenRevokedException;
 import com.example.votcha.events.domain.exception.EventDeadlinePassedException;
 import com.example.votcha.events.domain.exception.EventNotFoundException;
+import com.example.votcha.options.domain.exception.MinimumOptionsException;
 import com.example.votcha.options.domain.exception.OptionNotFoundException;
 import com.example.votcha.options.domain.exception.UnauthorizedException;
 import com.example.votcha.users.domain.exception.InvalidPasswordException;
@@ -109,6 +110,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             InvalidPasswordException.class,
             EventDeadlinePassedException.class,
+            MinimumOptionsException.class
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequest(BaseException ex, WebRequest request) {

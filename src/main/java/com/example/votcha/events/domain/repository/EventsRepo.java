@@ -19,6 +19,7 @@ public interface EventsRepo extends JpaRepository<Event, String> {
 
     Optional<Event> findByIdAndCreator(String eventId, Users user);
 
+
     Optional<List<Event>> findAllByTypeAndDeadlineBefore(EventType eventType, Instant deadline);
 
 }
