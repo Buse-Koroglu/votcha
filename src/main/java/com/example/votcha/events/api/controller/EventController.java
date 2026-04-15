@@ -19,15 +19,10 @@ public class EventController implements EventApi {
 
     @BusinessAction(action = "EVENT_CREATED", domain = "EVENTS", logDetails = "'Title: ' + #eventRequestDto.title + ' | Options Count: ' + #eventRequestDto.options.size()")
     @Override
-    public EventResponseDto createEvent(Users currentUser, EventRequestDto eventRequestDto) {
-        String userId = currentUser.getId();
-        return eventService.createEvent(eventRequestDto, userId);
-    }
+    public EventResponseDto createEvent(Users currentUser, EventRequestDto eventRequestDto) {return eventService.createEvent(eventRequestDto, currentUser.getId());}
 
     @Override
-    public EventDetailResponseDto getEventDetails(Users user, String eventId) {
-        return eventService.getEventDetail(user, eventId);
-    }
+    public EventDetailResponseDto getEventDetails(Users user, String eventId) {return eventService.getEventDetail(user, eventId);}
 
     @Override
     public List<EventResponseDto> getAllEvents(Users currentUser) {

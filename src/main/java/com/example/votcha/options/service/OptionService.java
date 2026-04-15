@@ -47,7 +47,7 @@ public class OptionService {
         long optionCount = optionRepository.countByEventId(event.getId());
 
         if(optionCount <= 2){
-            throw new MinimumOptionsException(String.format("Event '%s' must maintain at least 2 options.", event.getTitle()));
+            throw new MinimumOptionsException("An Event must maintain at least 2 options.");
         }
         optionRepository.delete(option);
         return optionMapper.toResponse(option);

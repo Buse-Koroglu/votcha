@@ -49,9 +49,6 @@ public class EventService {
 
     public EventResponseDto getUserEvent(Users user, String eventId) {
         Event event = eventsRepo.findByIdAndCreator(eventId, user).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
-        if(!event.getCreator().getId().equals(user.getId())) {
-            throw new AppAccessDeniedException("You are not allowed to access this event.");
-        }
         List<Option> options = optionRepo.findAllByEvent_Id(eventId);
         return eventMapper.toResponse(event, options);
     }
