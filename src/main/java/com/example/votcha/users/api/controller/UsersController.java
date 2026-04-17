@@ -37,4 +37,6 @@ public class UsersController implements UsersApi {
         usersService.changePassword(user.getId(), dto);
         return null;
     }
+
+
 }

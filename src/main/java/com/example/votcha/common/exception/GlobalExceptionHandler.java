@@ -8,6 +8,7 @@ import com.example.votcha.events.domain.exception.EventNotFoundException;
 import com.example.votcha.options.domain.exception.MinimumOptionsException;
 import com.example.votcha.options.domain.exception.OptionNotFoundException;
 import com.example.votcha.options.domain.exception.UnauthorizedException;
+import com.example.votcha.users.domain.exception.AdminActionException;
 import com.example.votcha.users.domain.exception.InvalidPasswordException;
 import com.example.votcha.users.domain.exception.UserIsAlreadyExistsException;
 import com.example.votcha.users.domain.exception.UserNotFoundException;
@@ -110,7 +111,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             InvalidPasswordException.class,
             EventDeadlinePassedException.class,
-            MinimumOptionsException.class
+            MinimumOptionsException.class,
+            AdminActionException.class
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequest(BaseException ex, WebRequest request) {
@@ -130,6 +132,20 @@ public class GlobalExceptionHandler {
             BaseException ex, WebRequest request) {
         logException(ex, HttpStatus.UNAUTHORIZED, ex.getMessage());
         return buildErrorResponse(ex,HttpStatus.UNAUTHORIZED,request);
+    }
+    @ExceptionHandler(org.springframework.security.authorization.AuthorizationDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleAuthorizationDeniedException(org.springframework.security.authorization.AuthorizationDeniedException ex, WebRequest request) {
+        String cleanMessage = "You do not have permission to perform this action";
+        logException(ex, HttpStatus.FORBIDDEN, cleanMessage);
+
+        return new ErrorResponse(
+                java.time.LocalDateTime.now().toString(),
+                HttpStatus.FORBIDDEN.value(),
+                "ACCESS_DENIED",
+                cleanMessage,
+                request.getDescription(false).replace("uri=", "")
+        );
     }
 
     @ExceptionHandler(AppAccessDeniedException.class)
