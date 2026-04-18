@@ -1,5 +1,6 @@
 package com.example.votcha.users.api.mapper;
 
+import com.example.votcha.users.api.dto.CreatorResponse;
 import com.example.votcha.users.api.dto.UpdateUsersRequestDto;
 import com.example.votcha.users.api.dto.UsersRequestDto;
 import com.example.votcha.users.api.dto.UsersResponseDto;
@@ -18,6 +19,14 @@ public class UsersMapper {
                 .email(entity.getEmail())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .build();
+    }
+
+    public CreatorResponse toCreatorResponse(Users entity) {
+        return CreatorResponse.builder()
+                .firstName(entity.getFirstName())
+                .lastName(entity.getLastName())
+                .email(entity.getEmail())
                 .build();
     }
 

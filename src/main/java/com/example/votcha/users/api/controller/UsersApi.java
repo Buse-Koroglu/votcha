@@ -29,4 +29,5 @@ public interface UsersApi {
     @PutMapping("/me/password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     Void updatePassword( @AuthenticationPrincipal Users user, @Valid @RequestBody ChangePasswordRequestDto dto);
+
 }

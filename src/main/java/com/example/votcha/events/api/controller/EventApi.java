@@ -4,6 +4,7 @@ import com.example.votcha.events.api.dto.EventDetailResponseDto;
 import com.example.votcha.events.api.dto.EventRequestDto;
 import com.example.votcha.events.api.dto.EventResponseDto;
 import com.example.votcha.events.api.dto.UpdateEventRequestDto;
+import com.example.votcha.users.api.dto.CreatorResponse;
 import com.example.votcha.users.domain.model.Users;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -43,4 +44,8 @@ public interface EventApi {
     @PatchMapping("/events/{id}")
     @ResponseStatus(HttpStatus.OK)
     EventResponseDto updateEvent(@AuthenticationPrincipal Users user, @PathVariable String id, @Valid @RequestBody UpdateEventRequestDto request);
+
+    @GetMapping("/events/users/{creatorId}/summary")
+    @ResponseStatus(HttpStatus.OK)
+    CreatorResponse getEventCreatorSummary(@AuthenticationPrincipal Users user, @PathVariable(name = "creatorId")String creatorId);
 }

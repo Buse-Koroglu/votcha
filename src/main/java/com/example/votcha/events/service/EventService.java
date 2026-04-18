@@ -13,6 +13,8 @@ import com.example.votcha.events.domain.model.EventType;
 import com.example.votcha.events.domain.repository.EventsRepo;
 import com.example.votcha.options.domain.model.Option;
 import com.example.votcha.options.domain.repository.OptionRepository;
+import com.example.votcha.users.api.dto.CreatorResponse;
+import com.example.votcha.users.api.mapper.UsersMapper;
 import com.example.votcha.users.domain.exception.UserNotFoundException;
 import com.example.votcha.users.domain.model.Users;
 import com.example.votcha.users.domain.repository.UsersRepo;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 public class EventService {
     private final EventsRepo eventsRepo;
     private final EventMapper eventMapper;
+    private final UsersMapper usersMapper;
     private final UsersRepo  usersRepo;
     private final OptionRepository optionRepo;
     private final SystemActionLogger systemActionLogger;
@@ -111,6 +114,11 @@ public class EventService {
                     return eventMapper.toResponse(event, eventOptions);
                 })
                 .toList();
+    }
+
+    public CreatorResponse getCreatorSummary(String creatorId) {
+        Users creator = usersRepo.findById(creatorId).orElseThrow(() -> new UserNotFoundException(String.format("User with id %s not found", creatorId)));
+        return usersMapper.toCreatorResponse(creator);
     }
 
     @Transactional

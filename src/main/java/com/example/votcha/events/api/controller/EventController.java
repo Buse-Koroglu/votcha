@@ -6,6 +6,7 @@ import com.example.votcha.events.api.dto.EventRequestDto;
 import com.example.votcha.events.api.dto.EventResponseDto;
 import com.example.votcha.events.api.dto.UpdateEventRequestDto;
 import com.example.votcha.events.service.EventService;
+import com.example.votcha.users.api.dto.CreatorResponse;
 import com.example.votcha.users.domain.model.Users;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -46,5 +47,10 @@ public class EventController implements EventApi {
     @BusinessAction(action = "EVENT_UPDATED", domain = "EVENTS", logDetails = "'Event ID: ' + #id")
     @Override
     public EventResponseDto updateEvent(Users user, String id, UpdateEventRequestDto request) {return eventService.updateUserEvents(user, id, request);}
+
+    @Override
+    public CreatorResponse getEventCreatorSummary(Users user, String creatorId) {
+        return eventService.getCreatorSummary(creatorId);
+    }
 
 }
