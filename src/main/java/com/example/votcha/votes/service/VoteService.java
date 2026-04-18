@@ -76,4 +76,10 @@ public class VoteService {
         return voteMapper.toResponse(voteRepository.saveAndFlush(vote));
     }
 
+    public VoteResponseDto getUserVoteForEvent(String userId, String eventId) {
+        return voteRepository
+                .findByVoter_IdAndOption_Event_Id(userId, eventId)
+                .map(voteMapper::toResponse)
+                .orElse(null);
+    }
 }

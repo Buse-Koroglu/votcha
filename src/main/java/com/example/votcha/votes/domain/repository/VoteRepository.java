@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public interface VoteRepository extends JpaRepository<Vote,String> {
     boolean existsByVoterIdAndOption_Event_Id(String voterId, String eventId);
+    Optional<Vote> findByVoter_IdAndOption_Event_Id(String voterId, String eventId);
     Optional<Vote> findByIdAndVoter(String id, Users user);
     Optional<List<Vote>> findAllByOption_Event_Id(String eventId);
 }

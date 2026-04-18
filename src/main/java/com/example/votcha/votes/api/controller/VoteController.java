@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/api/votes")
 @RequiredArgsConstructor
 public class VoteController implements VoteApi {
     private final VoteService voteService;
@@ -31,4 +32,10 @@ public class VoteController implements VoteApi {
     @BusinessAction(action = "VOTE_UPDATED", domain = "VOTES", logDetails = "'Vote ID: '+ #id + ' | New Option Id: ' + #request.optionId")
     @Override
     public VoteResponseDto updateVote(Users user, String id, VoteRequestDto request){ return voteService.updateVote(user, id, request); }
+
+    @Override
+    @GetMapping("/events/{id}/my-vote")
+    public VoteResponseDto getMyVote( Users user, String id) {
+        return voteService.getUserVoteForEvent(user.getId(), id);
+    }
 }
