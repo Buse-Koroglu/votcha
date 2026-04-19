@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: votcha
+  datasource:
+    url: jdbc:postgresql://localhost:5434/votcha
+    username: postgres
+    password: enes
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        show_sql: false
+    open-in-view: false
+  main:
+    banner-mode: off # Don't show Spring logs
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true # # throw error if the requestDtos have extra fields
+
+server:
+  port: 8090
+  forward-headers-strategy: native # Nginx forward proxy
+
+
+# 7 days, for refresh token
+jwt:
+  refresh-token:
+    expiration-in-seconds: 604800
+
+# You need to set this as true in production environment
+app:
+  security:
+    cookie:
+      secure: false
+
+
+# Actuator metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+
+
+# Remove the unnecessary logs (WARNINGS)
+logging:
+  level:
+    org:
+      springframework:
+        security:
+          config:
+            annotation:
+              authentication:
+                configuration:
+                  InitializeUserDetailsBeanManagerConfigurer: ERROR
+
+# Initial superadmin email and password , comes from .env
+initial:
+  admin:
+    email: ${SUPER_ADMIN_EMAIL:admin@votcha.com}
+    password: ${SUPER_ADMIN_PASSWORD:superadmin}
