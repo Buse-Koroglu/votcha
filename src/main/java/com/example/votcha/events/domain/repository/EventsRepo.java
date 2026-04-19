@@ -4,6 +4,7 @@ import com.example.votcha.events.domain.model.Event;
 import com.example.votcha.events.domain.model.EventType;
 import com.example.votcha.users.domain.model.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -19,7 +20,22 @@ public interface EventsRepo extends JpaRepository<Event, String> {
 
     Optional<Event> findByIdAndCreator(String eventId, Users user);
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Event e\s
+            SET e.type = 'STANDARD'
+            WHERE e.type = 'SURPRISED'
+            AND e.deadline < :deadline
+           \s""")
+    int setStandardExpiredSurprisedEvents(Instant deadline);
 
-    Optional<List<Event>> findAllByTypeAndDeadlineBefore(EventType eventType, Instant deadline);
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Event e\s
+            SET e.status = 'CLOSED'
+            WHERE e.status = 'OPEN'
+            AND e.deadline < :deadline
+           \s""")
+    int closeExpiredEvents(Instant deadline);
 
 }

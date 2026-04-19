@@ -15,4 +15,7 @@ public class EventStatusScheduler {
     public void runRevealSurpriseEventsJob(){
         eventService.revealExpiredSurpriseEvents();
     }
+
+    @Scheduled(cron = "0 */1 * * * *")
+    public void setClosedForExpiredEvents(){eventService.closeExpiredEvents();}
 }

@@ -10,6 +10,7 @@ import com.example.votcha.events.api.mapper.EventMapper;
 import com.example.votcha.events.domain.exception.EventNotFoundException;
 import com.example.votcha.events.domain.model.Event;
 import com.example.votcha.events.domain.model.EventType;
+import com.example.votcha.events.domain.model.Status;
 import com.example.votcha.events.domain.repository.EventsRepo;
 import com.example.votcha.options.domain.model.Option;
 import com.example.votcha.options.domain.repository.OptionRepository;
@@ -42,6 +43,7 @@ public class EventService {
     private final OptionRepository optionRepo;
     private final SystemActionLogger systemActionLogger;
     private final VoteService  voteService;
+
 
     @Transactional
     public EventResponseDto createEvent(EventRequestDto eventRequestDto, String userId) {
@@ -123,22 +125,38 @@ public class EventService {
 
     @Transactional
     public void revealExpiredSurpriseEvents(){
-        List<Event> events = eventsRepo.findAllByTypeAndDeadlineBefore(EventType.SURPRISED, Instant.now()).orElse(Collections.emptyList());
+        Instant now = Instant.now();
+        int counts = eventsRepo.setStandardExpiredSurprisedEvents(now);
 
-        if(events.isEmpty()) {
+        if(counts == 0) {
             return;
         }
 
         systemActionLogger.execute(
                 "EVENTS",
                 "SURPRISE_EVENTS_REVEALED",
-                "Revealed count: "+ events.size(),
+                "Revealed count: "+ counts,
                 "SYSTEM_SCHEDULER",
-                () -> {
-                    events.forEach(event -> event.setType(EventType.STANDARD));
-                    eventsRepo.saveAll(events);
-                }
+                () -> {}
         );
+    }
+
+    @Transactional
+    public  void closeExpiredEvents() {
+        Instant now = Instant.now();
+        int counts = eventsRepo.closeExpiredEvents(now);
+        if(counts == 0) {
+            return;
+        }
+
+        systemActionLogger.execute(
+                "EVENTS",
+                "EXPIRED_EVENTS_CLOSED",
+                "Closed " + counts + " expired events",
+                "SYSTEM_SCHEDULER",
+                () -> {}
+        );
+
     }
 
 }
