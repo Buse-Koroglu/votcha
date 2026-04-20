@@ -14,6 +14,11 @@ spring:
       hibernate:
         show_sql: false
     open-in-view: false
+  elasticsearch:
+    uris: "localhost:9200"
+    username: "elastic"
+    password: "enes.13"
+
   main:
     banner-mode: off # Don't show Spring logs
 

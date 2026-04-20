@@ -23,6 +23,7 @@ help:
 	@echo "  make logs        - show logs (app)"
 	@echo "  make logs-elk    - show logs (ELK)"
 	@echo "  make clean       - remove containers + volumes"
+	@echo "  make run         - run frontend(for testing)"
 
 
 # ====================
@@ -79,3 +80,10 @@ clean:
 	$(COMPOSE) -f $(APP_COMPOSE) down -v
 
 	$(COMPOSE) -f $(ELK_COMPOSE) down -v
+
+# ====================
+# FRONTEND
+# ====================
+.PHONY: run
+run:
+	npm --prefix ./frontend/votcha-client run dev
