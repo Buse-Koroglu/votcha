@@ -1,6 +1,7 @@
 package com.example.votcha.users.service;
 
 import com.example.votcha.common.event.UserCreatedSyncEvent;
+import com.example.votcha.common.event.UserDeletedSyncEvent;
 import com.example.votcha.common.logging.SystemActionLogger;
 import com.example.votcha.users.api.dto.ChangePasswordRequestDto;
 import com.example.votcha.users.api.dto.UpdateUsersRequestDto;
@@ -31,6 +32,10 @@ public class UsersService {
     public UsersResponseDto deleteUser(String id) {
         Users user = usersRepo.findById(id).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", id)));
         usersRepo.delete(user);
+
+        UserDeletedSyncEvent  event = new UserDeletedSyncEvent(id);
+        eventPublisher.publishEvent(event);
+
         return usersMapper.toResponse(user);
 
     }
@@ -48,7 +53,6 @@ public class UsersService {
                 user.getRole(),
                 user.getCreatedAt()
         );
-        System.out.println("USER IS PATCHİNG");
         eventPublisher.publishEvent(event);
 
 

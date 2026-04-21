@@ -1,6 +1,7 @@
 package com.example.votcha.votcha_search.service;
 
 import com.example.votcha.common.event.UserCreatedSyncEvent;
+import com.example.votcha.common.event.UserDeletedSyncEvent;
 import com.example.votcha.common.logging.ElasticSync;
 import com.example.votcha.votcha_search.domain.model.UserDocument;
 import com.example.votcha.votcha_search.domain.repository.UserElasticRepository;
@@ -33,8 +34,18 @@ public class UserSyncListener {
                 .createdAt(event.createdAt())
                 .role(event.role())
                 .build();
-        System.out.println("user ıs savıng");
         userElasticRepository.save(userDocument);
+    }
+
+    @EventListener
+    @Async
+    @ElasticSync(
+            action = "USER_DELETED_SYNC",
+            index = "users",
+            logDetails = "'Deleting user from ES: ' + #event.id"
+    )
+    public void handleUserDeletedEvent(UserDeletedSyncEvent event){
+        userElasticRepository.deleteById(event.id());
     }
 
 }
