@@ -1,4 +1,4 @@
-package com.example.votcha.common.event;
+package com.example.votcha.votcha_search.api.dto.event;
 
 import com.example.votcha.users.domain.model.Role;
 

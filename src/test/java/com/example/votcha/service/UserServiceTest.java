@@ -1,6 +1,5 @@
 package com.example.votcha.service;
 
-import com.example.votcha.common.event.UserCreatedSyncEvent;
 import com.example.votcha.users.api.dto.UpdateUsersRequestDto;
 import com.example.votcha.users.api.dto.UsersResponseDto;
 import com.example.votcha.users.api.mapper.UsersMapper;

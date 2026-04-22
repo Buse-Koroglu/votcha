@@ -1,7 +1,7 @@
-package com.example.votcha.votcha_search.service;
+package com.example.votcha.votcha_search.api.listener;
 
-import com.example.votcha.common.event.UserCreatedSyncEvent;
-import com.example.votcha.common.event.UserDeletedSyncEvent;
+import com.example.votcha.votcha_search.api.dto.event.UserCreatedSyncEvent;
+import com.example.votcha.votcha_search.api.dto.event.UserDeletedSyncEvent;
 import com.example.votcha.common.logging.ElasticSync;
 import com.example.votcha.votcha_search.domain.model.UserDocument;
 import com.example.votcha.votcha_search.domain.repository.UserElasticRepository;

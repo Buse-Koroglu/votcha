@@ -1,10 +1,8 @@
 package com.example.votcha.votcha_search.service;
 
-import com.example.votcha.common.logging.ElasticSync;
-import com.example.votcha.users.api.mapper.UsersMapper;
 import com.example.votcha.users.domain.model.Users;
 import com.example.votcha.users.domain.repository.UsersRepo;
-import com.example.votcha.votcha_search.api.dto.UserSyncResponse;
+import com.example.votcha.votcha_search.api.dto.response.UserSyncResponse;
 import com.example.votcha.votcha_search.domain.model.UserDocument;
 import com.example.votcha.votcha_search.domain.repository.UserElasticRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +21,6 @@ public class UserIndexingService {
     private final UserElasticRepository userElasticRepository;
 
     @Transactional(readOnly=true)
-    @ElasticSync(
-            action = "USER_BULK_SYNC",
-            index = "users",
-            logDetails = "'Bulk synchronization completed successfully'"    )
     public UserSyncResponse syncAllUsers() {
         int pageSize = 1000;
         int pageNumber = 0;

@@ -1,8 +1,7 @@
 package com.example.votcha.users.service;
 
-import com.example.votcha.common.event.UserCreatedSyncEvent;
-import com.example.votcha.common.event.UserDeletedSyncEvent;
-import com.example.votcha.common.logging.SystemActionLogger;
+import com.example.votcha.votcha_search.api.dto.event.UserCreatedSyncEvent;
+import com.example.votcha.votcha_search.api.dto.event.UserDeletedSyncEvent;
 import com.example.votcha.users.api.dto.ChangePasswordRequestDto;
 import com.example.votcha.users.api.dto.UpdateUsersRequestDto;
 import com.example.votcha.users.api.dto.UsersResponseDto;

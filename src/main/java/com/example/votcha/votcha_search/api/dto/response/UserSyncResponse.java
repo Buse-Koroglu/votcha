@@ -1,4 +1,4 @@
-package com.example.votcha.votcha_search.api.dto;
+package com.example.votcha.votcha_search.api.dto.response;
 
 import lombok.Builder;
 
