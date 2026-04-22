@@ -1,16 +1,38 @@
 services:
+  prometheus:
+    extends:
+      file: monitoring/prometheus/services/prometheus.yaml
+      service: prometheus
+    networks:
+      - votcha_network
+
+  grafana:
+    extends:
+      file: monitoring/grafana/services/grafana.yaml
+      service: grafana
+    networks:
+      - votcha_network
   app:
     extends:
       file: deploy/backend.yaml
       service: app
+    networks:
+      - votcha_network
   frontend:
     extends:
       file: deploy/frontend.yaml
       service: frontend
+    networks:
+      - votcha_network
+    depends_on:
+      grafana:
+        condition: service_started
   db:
     extends:
       file: deploy/db.yaml
       service: db
+    networks:
+      - votcha_network
 networks:
   votcha_network:
     driver: bridge
