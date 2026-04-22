@@ -15,6 +15,8 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Aspect
 @Component
 public class LoggingAspect {
@@ -33,6 +35,20 @@ public class LoggingAspect {
                 dynamicDetails,
                 userIdentifier,
                 "BUSINESS_ACTION"
+        );
+    }
+    @Around("@annotation(elasticSync)")
+    public Object logElasticSync(ProceedingJoinPoint joinPoint, ElasticSync elasticSync) throws Throwable {
+        String dynamicDetails = parseSpel(elasticSync.logDetails(), joinPoint);
+        String fullDetails = String.format("%s | Index: %s", dynamicDetails, elasticSync.index());
+
+        return executeWithLogging(
+                joinPoint,
+                elasticSync.domain(),
+                elasticSync.action(),
+                fullDetails,
+                elasticSync.index(),
+                "ELASTIC_SYNC"
         );
     }
 
@@ -54,6 +70,10 @@ public class LoggingAspect {
 
     private Object executeWithLogging(ProceedingJoinPoint joinPoint, String domain, String action,
                                       String details, String userIdentifier, String logPrefix) throws Throwable {
+
+        // Prevents conflict of ElasticSync and BusinessAction
+        Map<String, String> contextSnapshot = MDC.getCopyOfContextMap();
+
         long start = System.currentTimeMillis();
 
         MDC.put("domain", domain);
@@ -65,14 +85,17 @@ public class LoggingAspect {
 
         try{
             Object result = joinPoint.proceed();
-
             recordLog(start, logPrefix, action, "SUCCESS", null);
             return result;
         }catch (Throwable throwable){
             recordLog(start, logPrefix, action, "FAIL", throwable);
             throw throwable;
         }finally {
-            removeFromMDC("domain", "user", "action", "duration", "status", "details");
+            if(contextSnapshot != null){
+                MDC.setContextMap(contextSnapshot);
+            }else{
+                MDC.clear();
+            }
         }
     }
 
@@ -95,11 +118,6 @@ public class LoggingAspect {
         }
     }
 
-    public void removeFromMDC(String ... args){
-        for(String arg : args){
-            MDC.remove(arg);
-        }
-    }
 
     private String resolveUserIdentifier(Object[] args){
         var auth = SecurityContextHolder.getContext().getAuthentication();
@@ -138,6 +156,7 @@ public class LoggingAspect {
             // If the expression starts with '#', then parse it, if not return directly
             return parser.parseExpression(expression).getValue(context, String.class);
         } catch (Exception e) {
+            System.err.println("SpEL Error for action: " + expression + " | Error: " + e.getMessage());
             return expression; // Print the log if there is an error
         }
     }

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -26,6 +27,9 @@ public class UserServiceTest {
 
     @Mock
     private UsersMapper usersMapper;
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @InjectMocks
     private UsersService  usersService;
@@ -50,7 +54,7 @@ public class UserServiceTest {
         willAnswer(invocation -> {
             Users userToUpdate = invocation.getArgument(1); // 2. parametre existingUser
             userToUpdate.setFirstName("Kate");
-            return null; // void metot olduğu için null dönüyoruz
+            return null; // return null because of void method
         }).given(usersMapper).update(request, existingUser);
 
         // Act
@@ -58,6 +62,9 @@ public class UserServiceTest {
 
         // Act
         UsersResponseDto actualResponse = usersService.patchUser(userId, request);
+
+
+
 
         // Assert
         assertThat(actualResponse.firstName()).isEqualTo("Kate");

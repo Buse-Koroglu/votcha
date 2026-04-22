@@ -4,6 +4,7 @@ import com.example.votcha.auth.api.dto.AuthRequestDto;
 import com.example.votcha.auth.api.dto.RegisterResponseDto;
 import com.example.votcha.auth.api.dto.AuthResponseDto;
 import com.example.votcha.auth.domain.model.RefreshToken;
+import com.example.votcha.votcha_search.api.dto.event.UserCreatedSyncEvent;
 import com.example.votcha.users.api.dto.UsersRequestDto;
 import com.example.votcha.users.api.mapper.UsersMapper;
 import com.example.votcha.users.domain.exception.UserIsAlreadyExistsException;
@@ -12,6 +13,7 @@ import com.example.votcha.users.domain.model.Users;
 import com.example.votcha.users.domain.repository.UsersRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +28,7 @@ public class AuthService {
     private final UsersMapper usersMapper;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public RegisterResponseDto register(UsersRequestDto request){
         usersRepo.findByEmail(request.email()).ifPresent(user -> {
@@ -35,6 +38,16 @@ public class AuthService {
         Users user = usersMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         usersRepo.save(user);
+
+        UserCreatedSyncEvent event = new UserCreatedSyncEvent(
+                user.getId(),
+                user.getFirstName() + " " +  user.getLastName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getCreatedAt()
+        );
+        eventPublisher.publishEvent(event);
+
         return new RegisterResponseDto("User successfully registered");
     }
 
