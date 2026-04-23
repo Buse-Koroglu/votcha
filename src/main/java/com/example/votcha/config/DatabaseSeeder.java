@@ -31,8 +31,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .email(adminEmail)
                     .password(passwordEncoder.encode(adminPassword))
                     .role(Role.SUPER_ADMIN)
-                    .firstName("admin")
-                    .lastName("admin")
+                    .firstName("Super")
+                    .lastName("Admin")
                     .createdAt(Instant.now())
                     .build();
             usersRepo.save(superAdmin);

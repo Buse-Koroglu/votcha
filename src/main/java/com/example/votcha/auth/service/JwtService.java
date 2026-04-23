@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +39,9 @@ public class JwtService {
     // This is where the token was originally created:
     public String generateToken(Map<String, Object> extraClaims,
                                 UserDetails userDetails){
+        var role = userDetails.getAuthorities().stream().findFirst()
+                .map(GrantedAuthority::getAuthority).orElse("USER");
+        extraClaims.put("role",role);
         return Jwts.builder()
                 .setClaims(extraClaims) // We can set a role like role:admin if we want
                 .setSubject(userDetails.getUsername()) // Who owns the token (Email)
