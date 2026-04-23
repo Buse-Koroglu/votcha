@@ -18,6 +18,8 @@ spring:
     uris: "localhost:9200"
     username: "elastic"
     password: "enes.13"
+    crt:
+      path: ${CRT_PATH:/home/enes/Documents/votcha/certs/ca.crt}
 
   main:
     banner-mode: off # Don't show Spring logs

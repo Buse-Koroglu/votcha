@@ -1,29 +1,16 @@
 services:
-  prometheus:
-    extends:
-      file: monitoring/prometheus/services/prometheus.yaml
-      service: prometheus
-    networks:
-      - votcha_network
-
-  grafana:
-    extends:
-      file: monitoring/grafana/services/grafana.yaml
-      service: grafana
-    networks:
-      - votcha_network
   app:
     extends:
       file: deploy/backend.yaml
       service: app
     networks:
-      - votcha_network
+      - votcha_votcha_network
   frontend:
     extends:
       file: deploy/frontend.yaml
       service: frontend
     networks:
-      - votcha_network
+      - votcha_votcha_network
     depends_on:
       grafana:
         condition: service_started
@@ -32,10 +19,22 @@ services:
       file: deploy/db.yaml
       service: db
     networks:
-      - votcha_network
+      - votcha_votcha_network
+  prometheus:
+    extends:
+      file: monitoring/services/prometheus.yaml
+      service: prometheus
+    networks:
+      - votcha_votcha_network
+  grafana:
+    extends:
+      file: monitoring/services/grafana.yaml
+      service: grafana
+    networks:
+      - votcha_votcha_network
 networks:
-  votcha_network:
-    driver: bridge
+  votcha_votcha_network:
+    external: true
 volumes:
   votcha_vol:
     driver: local

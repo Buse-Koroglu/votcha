@@ -37,3 +37,4 @@ build/
 ### frontend ###
 /frontend/
 /k8s/
+/certs/
