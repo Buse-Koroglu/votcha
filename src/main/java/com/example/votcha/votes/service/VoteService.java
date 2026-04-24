@@ -10,6 +10,7 @@ import com.example.votcha.users.domain.model.Users;
 import com.example.votcha.users.domain.repository.UsersRepo;
 import com.example.votcha.votcha_search.api.dto.data.OptionSyncData;
 import com.example.votcha.votcha_search.api.dto.event.VoteCountUpdatedSyncEvent;
+import com.example.votcha.votcha_search.api.mapper.EventElasticMapper;
 import com.example.votcha.votes.api.dto.VoteRequestDto;
 import com.example.votcha.votes.api.dto.VoteResponseDto;
 import com.example.votcha.votes.api.mapper.VoteMapper;
@@ -31,6 +32,7 @@ import java.util.List;
 public class VoteService {
     private final VoteRepository voteRepository;
     private final VoteMapper voteMapper;
+    private final EventElasticMapper elasticMapper;
     private final OptionRepository optionRepository;
     private final UsersRepo  usersRepo;
     private final ApplicationEventPublisher eventPublisher;
@@ -40,9 +42,7 @@ public class VoteService {
     public VoteResponseDto createVote(VoteRequestDto request, String userId){
         Option option = optionRepository.findById(request.optionId()).orElseThrow( () -> new OptionNotFoundException(String.format("Option with id %s not found", request.optionId())));
 
-        if(option.getEvent().isExpired()){
-            throw new EventDeadlinePassedException(String.format("Option with id %s is expired", request.optionId()));
-        }
+        validateEventNotExpired(option.getEvent());
 
         boolean alreadyVoted = voteRepository.existsByVoterIdAndOption_Event_Id(userId,option.getEvent().getId());
         if(alreadyVoted){
@@ -50,25 +50,10 @@ public class VoteService {
         }
 
         Users voter = usersRepo.findById(userId).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", userId)));
-        Vote vote = voteMapper.toEntity(option, voter);
-        Vote savedVote = voteRepository.saveAndFlush(vote);
+        Vote savedVote = voteRepository.saveAndFlush(voteMapper.toEntity(option, voter));
 
-        Event event = option.getEvent();
-        long newTotalVoteCount = voteRepository.countByOption_Event_Id(event.getId());
-        List<OptionSyncData> updatedOptions = optionRepository.findAllByEvent_Id(event.getId())
-                .stream()
-                .map(opt -> new OptionSyncData(
-                        opt.getId(),
-                        opt.getContent(),
-                        voteRepository.countByOption_Id(opt.getId())
-                ))
-                .toList();
-        VoteCountUpdatedSyncEvent syncEvent = new VoteCountUpdatedSyncEvent(
-                event.getId(),
-                newTotalVoteCount,
-                updatedOptions
-        );
-        eventPublisher.publishEvent(syncEvent);
+        publishVoteUpdateEvent(option.getEvent().getId());
+
         return voteMapper.toResponse(savedVote);
     }
 
@@ -87,17 +72,8 @@ public class VoteService {
         voteRepository.delete(vote);
         voteRepository.flush();
 
-        long newTotalVoteCount = voteRepository.countByOption_Event_Id(eventId);
-        List<OptionSyncData> updatedOptions = optionRepository.findAllByEvent_Id(eventId)
-                .stream()
-                .map(opt -> new OptionSyncData(
-                        opt.getId(),
-                        opt.getContent(),
-                        voteRepository.countByOption_Id(opt.getId())
-                ))
-                .toList();
+        publishVoteUpdateEvent(eventId);
 
-        eventPublisher.publishEvent(new VoteCountUpdatedSyncEvent(eventId, newTotalVoteCount, updatedOptions));
         return voteMapper.toResponse(vote);
     }
     @Transactional
@@ -105,24 +81,13 @@ public class VoteService {
         Vote vote = voteRepository.findByIdAndVoter(id, user).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id)));
         Option option = optionRepository.findById(request.optionId()).orElseThrow(() -> new OptionNotFoundException(String.format("Option with id %s not found", id)));
 
-        if(option.getEvent().isExpired()){
-            throw new EventDeadlinePassedException(String.format("Option with id %s is expired", request.optionId()));
-        }
+        validateEventNotExpired(option.getEvent());
 
         voteMapper.update(option, vote);
         Vote updatedVote = voteRepository.saveAndFlush(vote);
-        String eventId = option.getEvent().getId();
-        long newTotalVoteCount = voteRepository.countByOption_Event_Id(eventId);
-        List<OptionSyncData> updatedOptions = optionRepository.findAllByEvent_Id(eventId)
-                .stream()
-                .map(opt -> new OptionSyncData(
-                        opt.getId(),
-                        opt.getContent(),
-                        voteRepository.countByOption_Id(opt.getId())
-                ))
-                .toList();
 
-        eventPublisher.publishEvent(new VoteCountUpdatedSyncEvent(eventId, newTotalVoteCount, updatedOptions));
+        publishVoteUpdateEvent(option.getEvent().getId());
+
         return voteMapper.toResponse(updatedVote);
     }
 
@@ -131,5 +96,25 @@ public class VoteService {
                 .findByVoter_IdAndOption_Event_Id(userId, eventId)
                 .map(voteMapper::toResponse)
                 .orElse(null);
+    }
+
+    private void publishVoteUpdateEvent(String eventId) {
+        long newTotalVoteCount = getTotalVoteCountForEvent(eventId);
+
+        List<OptionSyncData> updatedOptions = optionRepository.findAllByEvent_Id(eventId)
+                .stream()
+                .map(elasticMapper::optionToOptionSyncData)
+                .toList();
+
+        eventPublisher.publishEvent(new VoteCountUpdatedSyncEvent(eventId, newTotalVoteCount, updatedOptions));
+    }
+    private void validateEventNotExpired(Event event){
+        if(event.isExpired()){
+            throw new EventDeadlinePassedException(String.format("Event with id %s is expired", event.getId()));
+        }
+    }
+
+    private long getTotalVoteCountForEvent(String eventId) {
+        return voteRepository.countByOption_Event_Id(eventId);
     }
 }

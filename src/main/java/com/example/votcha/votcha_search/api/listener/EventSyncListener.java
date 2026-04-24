@@ -4,6 +4,7 @@ import com.example.votcha.common.logging.ElasticSync;
 import com.example.votcha.votcha_search.api.dto.event.EventCreatedSyncEvent;
 import com.example.votcha.votcha_search.api.dto.event.EventDeletedSyncEvent;
 import com.example.votcha.votcha_search.api.dto.event.VoteCountUpdatedSyncEvent;
+import com.example.votcha.votcha_search.api.mapper.EventElasticMapper;
 import com.example.votcha.votcha_search.domain.model.EventDocument;
 import com.example.votcha.votcha_search.domain.model.OptionDocument;
 import com.example.votcha.votcha_search.domain.repository.EventElasticRepository;
@@ -20,6 +21,7 @@ import java.util.List;
 public class EventSyncListener {
     private final EventElasticRepository eventElasticRepository;
     private final EventIndexingService eventIndexingService;
+    private final EventElasticMapper eventElasticMapper;
 
     @EventListener
     @Async
@@ -30,26 +32,12 @@ public class EventSyncListener {
     )
     public void handleEventCreated(EventCreatedSyncEvent event){
 
-        List<OptionDocument> optionDocuments = event.options().stream().map(
-                opt -> OptionDocument.builder()
-                        .id(opt.id())
-                        .content(opt.content())
-                        .voteCount(opt.voteCount())
-                        .build()).toList();
+        List<OptionDocument> optionDocuments = event.options().stream()
+                .map(eventElasticMapper::optionSyncToOptionDocument).toList();
 
-        EventDocument document = EventDocument.builder()
-                .id(event.id())
-                .title(event.title())
-                .description(event.description())
-                .deadline(event.deadline())
-                .createdAt(event.createdAt())
-                .type(event.type())
-                .status(event.status())
-                .creatorName(event.creatorName())
-                .creatorEmail(event.creatorEmail())
-                .totalVoteCount(event.totalVoteCount() != null ? event.totalVoteCount(): 0L)
-                .options(optionDocuments)
-                .build();
+        EventDocument document = eventElasticMapper
+                .eventCreatedSyncToEventDocument(event, optionDocuments);
+
         eventElasticRepository.save(document);
     }
 

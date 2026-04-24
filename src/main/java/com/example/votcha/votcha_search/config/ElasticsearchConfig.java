@@ -75,7 +75,7 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         try {
             File file = new File(crtPath);
             if(!file.exists()){
-                throw new RuntimeException("Sertifika dosyası bulunamadı: " + file.getAbsolutePath());
+                throw new RuntimeException("Certificate file couldn't found!: " + file.getAbsolutePath());
             }
             try(InputStream is = new FileInputStream(file)){
                 // Standard factory to handle X.509 type certificates

@@ -24,6 +24,7 @@ import com.example.votcha.votcha_search.api.dto.event.EventCreatedSyncEvent;
 import com.example.votcha.votcha_search.api.dto.event.EventDeletedSyncEvent;
 import com.example.votcha.votcha_search.api.dto.event.UserCreatedSyncEvent;
 import com.example.votcha.votcha_search.api.dto.event.UserDeletedSyncEvent;
+import com.example.votcha.votcha_search.api.mapper.EventElasticMapper;
 import com.example.votcha.votes.api.dto.VoteResponseDto;
 import com.example.votcha.votes.service.VoteService;
 import jakarta.transaction.Transactional;
@@ -45,6 +46,7 @@ public class EventService {
     private final EventsRepo eventsRepo;
     private final EventMapper eventMapper;
     private final UsersMapper usersMapper;
+    private final EventElasticMapper eventElasticMapper;
     private final UsersRepo  usersRepo;
     private final OptionRepository optionRepo;
     private final SystemActionLogger systemActionLogger;
@@ -52,28 +54,9 @@ public class EventService {
     private final ApplicationEventPublisher eventPublisher;
 
     public void publishEventUpdate(Event event) {
-        long currentTotalVotes = event.getOptions().stream()
-                .mapToLong(opt -> opt.getVoteCount() != null ? opt.getVoteCount() : 0L)
-                .sum();
+        long currentTotalVotes = event.getTotalVoteCount();
 
-        EventCreatedSyncEvent syncEvent = new EventCreatedSyncEvent(
-                event.getId(),
-                event.getTitle(),
-                event.getDescription(),
-                event.getDeadline(),
-                event.getCreatedAt(),
-                event.getType().name(),
-                event.getStatus().name(),
-                event.getCreator().getFirstName() + " " + event.getCreator().getLastName(),
-                event.getCreator().getEmail(),
-                currentTotalVotes,
-                event.getOptions().stream()
-                        .map(opt -> new OptionSyncData(
-                                opt.getId(),
-                                opt.getContent(),
-                                opt.getVoteCount() != null ? opt.getVoteCount() : 0))
-                        .toList()
-        );
+        EventCreatedSyncEvent syncEvent = eventElasticMapper.eventToEventCreatedSyncEvent(event, currentTotalVotes);
 
         eventPublisher.publishEvent(syncEvent);
     }
@@ -88,7 +71,7 @@ public class EventService {
     }
 
     public EventResponseDto getUserEvent(Users user, String eventId) {
-        Event event = eventsRepo.findByIdAndCreator(eventId, user).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+        Event event = getEventIfExist(eventId);
         List<Option> options = optionRepo.findAllByEvent_Id(eventId);
         return eventMapper.toResponse(event, options);
     }
@@ -96,7 +79,7 @@ public class EventService {
     ///  Retrieves the Events Details (Options with Voters)
     @Transactional
     public EventDetailResponseDto getEventDetail(Users user, String eventId) {
-        Event event = eventsRepo.findById(eventId).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s", eventId)));
+        Event event = getEventIfExist(eventId);
 
         if(!user.getId().equals(event.getCreator().getId())) {
             throw new AppAccessDeniedException("You are not allowed to access this event.");
@@ -118,7 +101,7 @@ public class EventService {
 
     @Transactional
     public EventResponseDto deleteUserEvent(Users user, String eventId) {
-        Event event = eventsRepo.findByIdAndCreator(eventId, user).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+        Event event = getUserEventIfExist(eventId, user);
         eventsRepo.delete(event);
         EventDeletedSyncEvent deletedSyncEvent= new EventDeletedSyncEvent(eventId);
         eventPublisher.publishEvent(deletedSyncEvent);
@@ -126,7 +109,7 @@ public class EventService {
     }
     @Transactional
     public EventResponseDto updateUserEvents(Users user, String eventId, UpdateEventRequestDto request){
-        Event entity = eventsRepo.findByIdAndCreator(eventId, user).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+        Event entity = getUserEventIfExist(eventId, user);
         eventMapper.update(request, entity);
         Event updatedEvent = eventsRepo.save(entity);
         publishEventUpdate(updatedEvent);
@@ -162,6 +145,13 @@ public class EventService {
         return usersMapper.toCreatorResponse(creator);
     }
 
+    private Event getEventIfExist(String eventId) {
+        return eventsRepo.findById(eventId).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+    }
+    private Event getUserEventIfExist(String eventId, Users creator) {
+        return eventsRepo.findByIdAndCreator(eventId, creator).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
+    }
+
     @Transactional
     public void revealExpiredSurpriseEvents(){
         Instant now = Instant.now();
@@ -171,13 +161,7 @@ public class EventService {
             return;
         }
 
-        systemActionLogger.execute(
-                "EVENTS",
-                "SURPRISE_EVENTS_REVEALED",
-                "Revealed count: "+ counts,
-                "SYSTEM_SCHEDULER",
-                () -> {}
-        );
+        sendToLoggerExecute("SURPRISE_EVENTS_REVEALED", "Revealed count: "+ counts, () -> {});
     }
 
     @Transactional
@@ -188,14 +172,17 @@ public class EventService {
             return;
         }
 
+        sendToLoggerExecute("EXPIRED_EVENTS_CLOSED", "Closed " + counts + " expired events", () -> {});
+
+    }
+    private void sendToLoggerExecute(String action, String details,  Runnable task){
         systemActionLogger.execute(
                 "EVENTS",
-                "EXPIRED_EVENTS_CLOSED",
-                "Closed " + counts + " expired events",
+                action,
+                details,
                 "SYSTEM_SCHEDULER",
-                () -> {}
+                task
         );
-
     }
 
 }

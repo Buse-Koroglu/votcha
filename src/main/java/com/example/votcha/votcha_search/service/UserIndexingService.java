@@ -46,8 +46,6 @@ public class UserIndexingService {
             pageNumber++;
         }while(usersPage.hasNext());
 
-
-
         return UserSyncResponse.builder()
                 .timestamp(Instant.now())
                 .status("SUCCESS")

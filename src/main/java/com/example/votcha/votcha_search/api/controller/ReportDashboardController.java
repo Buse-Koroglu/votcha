@@ -3,7 +3,6 @@ package com.example.votcha.votcha_search.api.controller;
 import com.example.votcha.votcha_search.domain.model.EventDocument;
 import com.example.votcha.votcha_search.service.DashboardReportingService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -15,27 +14,27 @@ public class ReportDashboardController implements ReportingDashboardApi{
 
 
     @Override
-    public ResponseEntity<Long> getTodayRegistrations() {
-        return ResponseEntity.ok(dashboardReportingService.getTodayRegistrationCount());
+    public Long getTodayRegistrations() {
+        return dashboardReportingService.getTodayRegistrationCount();
     }
 
     @Override
-    public ResponseEntity<Long> getAllRegistrations() {
-        return ResponseEntity.ok(dashboardReportingService.getAllUsersCount());
+    public Long getAllRegistrations() {
+        return dashboardReportingService.getAllUsersCount();
     }
 
     @Override
-    public ResponseEntity<Long> getTodayEvents() {
-        return ResponseEntity.ok(dashboardReportingService.getTodayEventsCount());
+    public Long getTodayEvents() {
+        return dashboardReportingService.getTodayEventsCount();
     }
 
     @Override
-    public ResponseEntity<Long> getAllEvents() {
-        return ResponseEntity.ok(dashboardReportingService.getAllEventsCount());
+    public Long getAllEvents() {
+        return dashboardReportingService.getAllEventsCount();
     }
 
     @Override
-    public ResponseEntity<List<EventDocument>> getMostVotedEvents(int limit) {
-        return ResponseEntity.ok(dashboardReportingService.getMostVotedEvents(limit));
+    public List<EventDocument> getMostVotedEvents(int limit) {
+        return dashboardReportingService.getMostVotedEvents(limit);
     }
 }

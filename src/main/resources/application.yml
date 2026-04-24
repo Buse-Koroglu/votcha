@@ -19,8 +19,7 @@ spring:
     username: "elastic"
     password: "enes.13"
     crt:
-      path: ${CRT_PATH:"C:\Users\ASUS\Desktop\CloudProject\votcha\certs\ca.crt"}
-
+      path: ${CRT_PATH:/home/enes/Documents/votcha/certs/ca.crt}
   main:
     banner-mode: off # Don't show Spring logs
 
@@ -81,4 +80,4 @@ logging:
 initial:
   admin:
     email: ${SUPER_ADMIN_EMAIL:admin@votcha.com}
-    password: ${SUPER_ADMIN_PASSWORD:super.13u06}
+    password: ${SUPER_ADMIN_PASSWORD:superadmin}

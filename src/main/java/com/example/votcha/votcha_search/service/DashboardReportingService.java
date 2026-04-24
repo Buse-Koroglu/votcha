@@ -31,7 +31,6 @@ public class DashboardReportingService {
                 .atStartOfDay(ZoneId.systemDefault())
                 .toInstant();
 
-        System.out.println(startOfToday);
         return userElasticRepository.countByCreatedAtAfter(startOfToday);
     }
 
@@ -44,7 +43,6 @@ public class DashboardReportingService {
                 .now(ZoneId.systemDefault())
                 .atStartOfDay(ZoneId.systemDefault())
                 .toInstant();
-        System.out.println(startOfToday);
         return eventElasticRepository.countByCreatedAtAfter(startOfToday);
     }
 

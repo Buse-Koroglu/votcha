@@ -11,7 +11,6 @@ import java.util.List;
 
 @Repository
 public interface EventElasticRepository extends ElasticsearchRepository<EventDocument,String> {
-    List<EventDocument> findByCreatorName(String creatorName);
 
     List<EventDocument> findByCreatorEmail(String creatorEmail);
 
@@ -20,8 +19,6 @@ public interface EventElasticRepository extends ElasticsearchRepository<EventDoc
     @Query("{\"range\": {\"createdAt\": {\"gte\": \"?0\"}}}")
     long countByCreatedAtAfter(Instant time);
 
-    default List<EventDocument> findAllByOrderByTotalVoteCountDesc(Pageable pageable) // we can take most voted n event (n is optional by pageable)
-    {
-        return null;
-    }
+    // we can take most voted n event (n is optional by pageable)
+    default List<EventDocument> findAllByOrderByTotalVoteCountDesc(Pageable pageable) {return null;}
 }
