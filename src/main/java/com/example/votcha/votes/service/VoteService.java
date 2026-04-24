@@ -1,12 +1,15 @@
 package com.example.votcha.votes.service;
 
 import com.example.votcha.events.domain.exception.EventDeadlinePassedException;
+import com.example.votcha.events.domain.model.Event;
 import com.example.votcha.options.domain.exception.OptionNotFoundException;
 import com.example.votcha.options.domain.model.Option;
 import com.example.votcha.options.domain.repository.OptionRepository;
 import com.example.votcha.users.domain.exception.UserNotFoundException;
 import com.example.votcha.users.domain.model.Users;
 import com.example.votcha.users.domain.repository.UsersRepo;
+import com.example.votcha.votcha_search.api.dto.data.OptionSyncData;
+import com.example.votcha.votcha_search.api.dto.event.VoteCountUpdatedSyncEvent;
 import com.example.votcha.votes.api.dto.VoteRequestDto;
 import com.example.votcha.votes.api.dto.VoteResponseDto;
 import com.example.votcha.votes.api.mapper.VoteMapper;
@@ -16,6 +19,7 @@ import com.example.votcha.votes.domain.model.Vote;
 import com.example.votcha.votes.domain.repository.VoteRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -29,6 +33,7 @@ public class VoteService {
     private final VoteMapper voteMapper;
     private final OptionRepository optionRepository;
     private final UsersRepo  usersRepo;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @Transactional
@@ -46,7 +51,25 @@ public class VoteService {
 
         Users voter = usersRepo.findById(userId).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", userId)));
         Vote vote = voteMapper.toEntity(option, voter);
-        return voteMapper.toResponse(voteRepository.saveAndFlush(vote));
+        Vote savedVote = voteRepository.saveAndFlush(vote);
+
+        Event event = option.getEvent();
+        long newTotalVoteCount = voteRepository.countByOption_Event_Id(event.getId());
+        List<OptionSyncData> updatedOptions = optionRepository.findAllByEvent_Id(event.getId())
+                .stream()
+                .map(opt -> new OptionSyncData(
+                        opt.getId(),
+                        opt.getContent(),
+                        voteRepository.countByOption_Id(opt.getId())
+                ))
+                .toList();
+        VoteCountUpdatedSyncEvent syncEvent = new VoteCountUpdatedSyncEvent(
+                event.getId(),
+                newTotalVoteCount,
+                updatedOptions
+        );
+        eventPublisher.publishEvent(syncEvent);
+        return voteMapper.toResponse(savedVote);
     }
 
     public VoteResponseDto getUserVote(Users user, String id){
@@ -57,10 +80,24 @@ public class VoteService {
         return voteRepository.findAllByOption_Event_Id(eventId).orElse(Collections.emptyList()).stream().map(voteMapper::toResponse).toList();
     }
 
-
+    @Transactional
     public VoteResponseDto deleteUserVote(Users user, String id){
         Vote vote = voteRepository.findByIdAndVoter(id, user).orElseThrow( () -> new VoteNotFoundException(String.format("Vote with id %s not found", id)));
+        String eventId = vote.getOption().getEvent().getId();
         voteRepository.delete(vote);
+        voteRepository.flush();
+
+        long newTotalVoteCount = voteRepository.countByOption_Event_Id(eventId);
+        List<OptionSyncData> updatedOptions = optionRepository.findAllByEvent_Id(eventId)
+                .stream()
+                .map(opt -> new OptionSyncData(
+                        opt.getId(),
+                        opt.getContent(),
+                        voteRepository.countByOption_Id(opt.getId())
+                ))
+                .toList();
+
+        eventPublisher.publishEvent(new VoteCountUpdatedSyncEvent(eventId, newTotalVoteCount, updatedOptions));
         return voteMapper.toResponse(vote);
     }
     @Transactional
@@ -73,7 +110,20 @@ public class VoteService {
         }
 
         voteMapper.update(option, vote);
-        return voteMapper.toResponse(voteRepository.saveAndFlush(vote));
+        Vote updatedVote = voteRepository.saveAndFlush(vote);
+        String eventId = option.getEvent().getId();
+        long newTotalVoteCount = voteRepository.countByOption_Event_Id(eventId);
+        List<OptionSyncData> updatedOptions = optionRepository.findAllByEvent_Id(eventId)
+                .stream()
+                .map(opt -> new OptionSyncData(
+                        opt.getId(),
+                        opt.getContent(),
+                        voteRepository.countByOption_Id(opt.getId())
+                ))
+                .toList();
+
+        eventPublisher.publishEvent(new VoteCountUpdatedSyncEvent(eventId, newTotalVoteCount, updatedOptions));
+        return voteMapper.toResponse(updatedVote);
     }
 
     public VoteResponseDto getUserVoteForEvent(String userId, String eventId) {

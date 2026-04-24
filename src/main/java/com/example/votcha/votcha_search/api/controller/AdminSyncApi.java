@@ -1,5 +1,6 @@
 package com.example.votcha.votcha_search.api.controller;
 
+import com.example.votcha.votcha_search.api.dto.response.EventSyncResponse;
 import com.example.votcha.votcha_search.api.dto.response.UserSyncResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -15,4 +16,8 @@ public interface AdminSyncApi {
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('ADMIN')")
     ResponseEntity<UserSyncResponse> triggerUserSync();
+
+    @GetMapping("/events")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    ResponseEntity<EventSyncResponse> triggerEventSync();
 }
