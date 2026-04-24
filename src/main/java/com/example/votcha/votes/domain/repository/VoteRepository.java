@@ -11,4 +11,7 @@ public interface VoteRepository extends JpaRepository<Vote,String> {
     Optional<Vote> findByVoter_IdAndOption_Event_Id(String voterId, String eventId);
     Optional<Vote> findByIdAndVoter(String id, Users user);
     Optional<List<Vote>> findAllByOption_Event_Id(String eventId);
+    long countByOption_Event_Id(String eventId);
+
+    Integer countByOption_Id(String id);
 }

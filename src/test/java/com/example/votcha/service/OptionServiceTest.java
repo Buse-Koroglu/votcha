@@ -3,6 +3,7 @@ package com.example.votcha.service;
 import com.example.votcha.events.domain.exception.EventNotFoundException;
 import com.example.votcha.events.domain.model.Event;
 import com.example.votcha.events.domain.repository.EventsRepo;
+import com.example.votcha.events.service.EventService;
 import com.example.votcha.options.api.dto.OptionRequestDto;
 import com.example.votcha.options.api.dto.OptionResponseDto;
 import com.example.votcha.options.api.mapper.OptionMapper;
@@ -30,6 +31,7 @@ public class OptionServiceTest {
     @Mock private OptionRepository optionRepository;
     @Mock private EventsRepo eventsRepo;
     @Mock private OptionMapper optionMapper;
+    @Mock private EventService eventService;
     @InjectMocks private OptionService optionService;
 
     private final Integer VOTE_COUNT = 1;

@@ -19,11 +19,17 @@ import com.example.votcha.users.api.mapper.UsersMapper;
 import com.example.votcha.users.domain.exception.UserNotFoundException;
 import com.example.votcha.users.domain.model.Users;
 import com.example.votcha.users.domain.repository.UsersRepo;
+import com.example.votcha.votcha_search.api.dto.data.OptionSyncData;
+import com.example.votcha.votcha_search.api.dto.event.EventCreatedSyncEvent;
+import com.example.votcha.votcha_search.api.dto.event.EventDeletedSyncEvent;
+import com.example.votcha.votcha_search.api.dto.event.UserCreatedSyncEvent;
+import com.example.votcha.votcha_search.api.dto.event.UserDeletedSyncEvent;
 import com.example.votcha.votes.api.dto.VoteResponseDto;
 import com.example.votcha.votes.service.VoteService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -43,12 +49,41 @@ public class EventService {
     private final OptionRepository optionRepo;
     private final SystemActionLogger systemActionLogger;
     private final VoteService  voteService;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public void publishEventUpdate(Event event) {
+        long currentTotalVotes = event.getOptions().stream()
+                .mapToLong(opt -> opt.getVoteCount() != null ? opt.getVoteCount() : 0L)
+                .sum();
+
+        EventCreatedSyncEvent syncEvent = new EventCreatedSyncEvent(
+                event.getId(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getDeadline(),
+                event.getCreatedAt(),
+                event.getType().name(),
+                event.getStatus().name(),
+                event.getCreator().getFirstName() + " " + event.getCreator().getLastName(),
+                event.getCreator().getEmail(),
+                currentTotalVotes,
+                event.getOptions().stream()
+                        .map(opt -> new OptionSyncData(
+                                opt.getId(),
+                                opt.getContent(),
+                                opt.getVoteCount() != null ? opt.getVoteCount() : 0))
+                        .toList()
+        );
+
+        eventPublisher.publishEvent(syncEvent);
+    }
 
 
     @Transactional
     public EventResponseDto createEvent(EventRequestDto eventRequestDto, String userId) {
         Users user = usersRepo.findById(userId).orElseThrow(() -> new UserNotFoundException(String.format("User with id %s not found", userId)));
         Event savedEvent = eventsRepo.saveAndFlush(eventMapper.toEntity(eventRequestDto, user));
+        publishEventUpdate(savedEvent);
         return eventMapper.toResponse(savedEvent, savedEvent.getOptions());
     }
 
@@ -81,9 +116,12 @@ public class EventService {
         return eventsRepo.findAll().stream().map(event ->  eventMapper.toResponse(event, event.getOptions())).collect(Collectors.toList());
     }
 
+    @Transactional
     public EventResponseDto deleteUserEvent(Users user, String eventId) {
         Event event = eventsRepo.findByIdAndCreator(eventId, user).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
         eventsRepo.delete(event);
+        EventDeletedSyncEvent deletedSyncEvent= new EventDeletedSyncEvent(eventId);
+        eventPublisher.publishEvent(deletedSyncEvent);
         return eventMapper.toResponse(event, Collections.emptyList());
     }
     @Transactional
@@ -91,6 +129,7 @@ public class EventService {
         Event entity = eventsRepo.findByIdAndCreator(eventId, user).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
         eventMapper.update(request, entity);
         Event updatedEvent = eventsRepo.save(entity);
+        publishEventUpdate(updatedEvent);
         List<Option> options = optionRepo.findAllByEvent_Id(eventId);
         return eventMapper.toResponse(updatedEvent, options);
     }

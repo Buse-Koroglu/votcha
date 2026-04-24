@@ -4,6 +4,7 @@ import com.example.votcha.common.exception.AppAccessDeniedException;
 import com.example.votcha.events.domain.exception.EventNotFoundException;
 import com.example.votcha.events.domain.model.Event;
 import com.example.votcha.events.domain.repository.EventsRepo;
+import com.example.votcha.events.service.EventService;
 import com.example.votcha.options.api.dto.OptionRequestDto;
 import com.example.votcha.options.api.dto.OptionResponseDto;
 import com.example.votcha.options.api.dto.UpdateOptionRequestDto;
@@ -25,19 +26,22 @@ public class OptionService {
     private final OptionRepository optionRepository;
     private final EventsRepo eventsRepository;
     private final OptionMapper optionMapper;
+    private final EventService eventService;
 
 
     public OptionResponseDto getUserOption(Users user, String optionId){
         return optionMapper.toResponse(getOwnedOption(user, optionId));
 
     }
-
+    @Transactional
     public OptionResponseDto createOption(OptionRequestDto request, String eventId, String creatorId){
         Event event = eventsRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(String.format("Event with id %s not found", eventId)));
         if(!event.getCreator().getId().equals(creatorId)){
             throw new UnauthorizedException("Only the owner can add option to the event.");
         }
-        return optionMapper.toResponse(optionRepository.saveAndFlush(optionMapper.toEntity(request, event)));
+        Option savedOption = optionRepository.saveAndFlush(optionMapper.toEntity(request, event));
+        eventService.publishEventUpdate(event);
+        return optionMapper.toResponse(savedOption);
     }
     @Transactional
     public OptionResponseDto deleteUserOption(Users user, String id){
@@ -50,6 +54,9 @@ public class OptionService {
             throw new MinimumOptionsException("An Event must maintain at least 2 options.");
         }
         optionRepository.delete(option);
+        optionRepository.flush();
+
+        eventService.publishEventUpdate(event);
         return optionMapper.toResponse(option);
     }
 
@@ -57,7 +64,9 @@ public class OptionService {
     public OptionResponseDto patchUserOption(Users user, String id, UpdateOptionRequestDto request){
         Option option = getOwnedOption(user, id);
         optionMapper.update(request,option);
-        return optionMapper.toResponse(optionRepository.save(option));
+        Option updatedOption = optionRepository.saveAndFlush(option);
+        eventService.publishEventUpdate(option.getEvent());
+        return optionMapper.toResponse(updatedOption);
     }
 
 
