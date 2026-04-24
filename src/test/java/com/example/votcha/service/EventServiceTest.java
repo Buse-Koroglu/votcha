@@ -7,6 +7,7 @@ import com.example.votcha.events.api.mapper.EventMapper;
 import com.example.votcha.events.domain.exception.EventNotFoundException;
 import com.example.votcha.events.domain.model.Event;
 import com.example.votcha.events.domain.model.EventType;
+import com.example.votcha.events.domain.model.Status;
 import com.example.votcha.events.domain.repository.EventsRepo;
 import com.example.votcha.events.service.EventService;
 import com.example.votcha.options.api.dto.OptionRequestDto;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.*;
 
@@ -42,6 +44,7 @@ public class EventServiceTest {
     @Mock private EventMapper eventMapper;
     @Mock private Users mockUser;
     @Mock VoteService voteService;
+    @Mock private ApplicationEventPublisher eventPublisher;
     @InjectMocks private EventService eventService;
 
 
@@ -78,7 +81,14 @@ public class EventServiceTest {
 
         EventRequestDto request = new EventRequestDto("Meet", "Desc", null, null, optRequests);
         Users user = Users.builder().id(userId).build();
-        Event savedEvent = Event.builder().id("e-123").title("Meet").creator(user).options(opts).build();
+        Event savedEvent = Event.builder()
+                .id("e-123")
+                .title("Meet")
+                .creator(user)
+                .options(opts)
+                .type(EventType.STANDARD)
+                .status(Status.OPEN)
+                .build();
 
         EventResponseDto expectedResponse = new EventResponseDto("e-123", "Meet", "Desc", null, null, null, null, null, userId, responses);
 
