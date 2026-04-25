@@ -6,6 +6,7 @@ import lombok.Builder;
 public record OptionSyncData(
         String id,
         String content,
-        Integer voteCount
+        Integer voteCount,
+        boolean isWinner
 ) {
 }

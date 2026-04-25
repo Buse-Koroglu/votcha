@@ -1,13 +1,11 @@
 package com.example.votcha.votcha_search.api.controller;
 
+import com.example.votcha.votcha_search.api.dto.response.UserVoteSuccessSyncResponse;
 import com.example.votcha.votcha_search.domain.model.EventDocument;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -39,4 +37,18 @@ public interface ReportingDashboardApi {
     @PreAuthorize("hasAuthority('ADMIN')")
     List<EventDocument> getMostVotedEvents(@RequestParam(defaultValue = "5")int limit);
 
+    @GetMapping("/votes/today")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    Long getTodayVotes();
+
+    @GetMapping("/votes/total")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    Long getAllVotes();
+
+    @GetMapping("/voters/{voterId}/success-info")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    UserVoteSuccessSyncResponse getVoterSuccessCount(@PathVariable String voterId);
 }

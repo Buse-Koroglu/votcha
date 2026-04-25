@@ -1,7 +1,6 @@
 package com.example.votcha.events.domain.repository;
 
 import com.example.votcha.events.domain.model.Event;
-import com.example.votcha.events.domain.model.EventType;
 import com.example.votcha.users.domain.model.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

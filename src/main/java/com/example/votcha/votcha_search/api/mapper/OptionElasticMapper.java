@@ -12,6 +12,7 @@ public class OptionElasticMapper {
                 .voteCount(option.getVoteCount())
                 .content(option.getContent())
                 .id(option.getId())
+                .isWinner(option.isWinner())
                 .build();
     }
     public OptionDocument optionToOptionDocument(Option option){
@@ -19,6 +20,7 @@ public class OptionElasticMapper {
                 .id(option.getId())
                 .content(option.getContent())
                 .voteCount(option.getVoteCount())
+                .isWinner(option.isWinner())
                 .build();
     }
     public OptionDocument optionSyncToOptionDocument(OptionSyncData opt){
@@ -26,6 +28,7 @@ public class OptionElasticMapper {
                 .id(opt.id())
                 .content(opt.content())
                 .voteCount(opt.voteCount())
+                .isWinner(opt.isWinner())
                 .build();
     }
 }

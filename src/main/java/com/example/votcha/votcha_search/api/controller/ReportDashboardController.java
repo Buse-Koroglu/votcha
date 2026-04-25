@@ -1,5 +1,6 @@
 package com.example.votcha.votcha_search.api.controller;
 
+import com.example.votcha.votcha_search.api.dto.response.UserVoteSuccessSyncResponse;
 import com.example.votcha.votcha_search.domain.model.EventDocument;
 import com.example.votcha.votcha_search.service.DashboardReportingService;
 import lombok.RequiredArgsConstructor;
@@ -37,4 +38,13 @@ public class ReportDashboardController implements ReportingDashboardApi{
     public List<EventDocument> getMostVotedEvents(int limit) {
         return dashboardReportingService.getMostVotedEvents(limit);
     }
+
+    @Override
+    public Long getTodayVotes() {return dashboardReportingService.getTodayVotesCount();}
+
+    @Override
+    public Long getAllVotes() {return dashboardReportingService.getAllVotesCount();}
+
+    @Override
+    public UserVoteSuccessSyncResponse getVoterSuccessCount(String voterId) { return dashboardReportingService.getVoterSuccessCount(voterId);}
 }

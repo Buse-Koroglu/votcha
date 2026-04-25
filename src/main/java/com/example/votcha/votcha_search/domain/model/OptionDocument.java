@@ -18,4 +18,7 @@ public class OptionDocument {
 
     @Field(type = FieldType.Integer)
     private Integer voteCount;
+
+    @Field(type = FieldType.Boolean)
+    private boolean isWinner = false;
 }
