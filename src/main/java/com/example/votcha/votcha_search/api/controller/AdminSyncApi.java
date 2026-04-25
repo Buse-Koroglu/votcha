@@ -2,6 +2,7 @@ package com.example.votcha.votcha_search.api.controller;
 
 import com.example.votcha.votcha_search.api.dto.response.EventSyncResponse;
 import com.example.votcha.votcha_search.api.dto.response.UserSyncResponse;
+import com.example.votcha.votcha_search.api.dto.response.VoteSyncResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,4 +24,9 @@ public interface AdminSyncApi {
     @PreAuthorize("hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.OK)
     EventSyncResponse triggerEventSync();
+
+    @GetMapping("/votes")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ResponseStatus(HttpStatus.OK)
+    VoteSyncResponse triggerVoteSync();
 }

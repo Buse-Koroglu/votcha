@@ -4,10 +4,7 @@ import com.example.votcha.options.domain.model.Option;
 import com.example.votcha.users.domain.model.Users;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.*;
 
 import java.time.Instant;
 
@@ -43,4 +40,6 @@ public class Vote {
 
     private Instant updatedAt;
 
+    @Formula("(SELECT o.event_id FROM option o WHERE o.id = option_id)")
+    private String eventId;
 }

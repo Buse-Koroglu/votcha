@@ -4,8 +4,10 @@ import com.example.votcha.common.logging.BusinessAction;
 import com.example.votcha.common.logging.ElasticSync;
 import com.example.votcha.votcha_search.api.dto.response.EventSyncResponse;
 import com.example.votcha.votcha_search.api.dto.response.UserSyncResponse;
+import com.example.votcha.votcha_search.api.dto.response.VoteSyncResponse;
 import com.example.votcha.votcha_search.service.EventIndexingService;
 import com.example.votcha.votcha_search.service.UserIndexingService;
+import com.example.votcha.votcha_search.service.VoteIndexingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminSyncController implements AdminSyncApi {
     private final UserIndexingService userIndexingService;
     private final EventIndexingService eventIndexingService;
+    private final VoteIndexingService voteIndexingService;
 
     @ElasticSync(
             action = "USER_BULK_SYNC",
@@ -35,4 +38,12 @@ public class AdminSyncController implements AdminSyncApi {
     public EventSyncResponse triggerEventSync() {
         return eventIndexingService.syncAllEvents();
     }
+
+    @ElasticSync(
+            action = "VOTE_BULK_SYNC",
+            index = "votes",
+            logDetails = "'Bulk synchronization completed successfully'")
+    @BusinessAction(action = "BULK_SYNC_TRIGGERED", domain = "ADMIN", logDetails = "'Admin triggered bulk vote sync'")
+    @Override
+    public VoteSyncResponse triggerVoteSync() { return voteIndexingService.syncAllVotes(); }
 }
