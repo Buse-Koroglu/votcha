@@ -8,7 +8,6 @@ import com.example.votcha.votcha_search.domain.repository.VoteElasticRepository;
 import com.example.votcha.votes.domain.model.Vote;
 import com.example.votcha.votes.domain.repository.VoteRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VoteIndexingService {
