@@ -11,6 +11,7 @@ import com.example.votcha.users.domain.repository.UsersRepo;
 import com.example.votcha.votcha_search.api.dto.data.OptionSyncData;
 import com.example.votcha.votcha_search.api.dto.event.VoteCountUpdatedSyncEvent;
 import com.example.votcha.votcha_search.api.mapper.EventElasticMapper;
+import com.example.votcha.votcha_search.api.mapper.OptionElasticMapper;
 import com.example.votcha.votes.api.dto.VoteRequestDto;
 import com.example.votcha.votes.api.dto.VoteResponseDto;
 import com.example.votcha.votes.api.mapper.VoteMapper;
@@ -30,13 +31,15 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class VoteService {
+
     private final VoteRepository voteRepository;
-    private final VoteMapper voteMapper;
-    private final EventElasticMapper elasticMapper;
     private final OptionRepository optionRepository;
     private final UsersRepo  usersRepo;
-    private final ApplicationEventPublisher eventPublisher;
 
+    private final OptionElasticMapper  optionElasticMapper;
+    private final VoteMapper voteMapper;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public VoteResponseDto createVote(VoteRequestDto request, String userId){
@@ -103,7 +106,7 @@ public class VoteService {
 
         List<OptionSyncData> updatedOptions = optionRepository.findAllByEvent_Id(eventId)
                 .stream()
-                .map(elasticMapper::optionToOptionSyncData)
+                .map(optionElasticMapper::optionToOptionSyncData)
                 .toList();
 
         eventPublisher.publishEvent(new VoteCountUpdatedSyncEvent(eventId, newTotalVoteCount, updatedOptions));

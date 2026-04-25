@@ -5,6 +5,7 @@ import com.example.votcha.votcha_search.api.dto.event.EventCreatedSyncEvent;
 import com.example.votcha.votcha_search.api.dto.event.EventDeletedSyncEvent;
 import com.example.votcha.votcha_search.api.dto.event.VoteCountUpdatedSyncEvent;
 import com.example.votcha.votcha_search.api.mapper.EventElasticMapper;
+import com.example.votcha.votcha_search.api.mapper.OptionElasticMapper;
 import com.example.votcha.votcha_search.domain.model.EventDocument;
 import com.example.votcha.votcha_search.domain.model.OptionDocument;
 import com.example.votcha.votcha_search.domain.repository.EventElasticRepository;
@@ -21,7 +22,9 @@ import java.util.List;
 public class EventSyncListener {
     private final EventElasticRepository eventElasticRepository;
     private final EventIndexingService eventIndexingService;
+
     private final EventElasticMapper eventElasticMapper;
+    private final OptionElasticMapper optionElasticMapper;
 
     @EventListener
     @Async
@@ -33,7 +36,7 @@ public class EventSyncListener {
     public void handleEventCreated(EventCreatedSyncEvent event){
 
         List<OptionDocument> optionDocuments = event.options().stream()
-                .map(eventElasticMapper::optionSyncToOptionDocument).toList();
+                .map(optionElasticMapper::optionSyncToOptionDocument).toList();
 
         EventDocument document = eventElasticMapper
                 .eventCreatedSyncToEventDocument(event, optionDocuments);

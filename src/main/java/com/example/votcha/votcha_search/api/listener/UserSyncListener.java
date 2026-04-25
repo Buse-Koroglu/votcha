@@ -3,7 +3,7 @@ package com.example.votcha.votcha_search.api.listener;
 import com.example.votcha.votcha_search.api.dto.event.UserCreatedSyncEvent;
 import com.example.votcha.votcha_search.api.dto.event.UserDeletedSyncEvent;
 import com.example.votcha.common.logging.ElasticSync;
-import com.example.votcha.votcha_search.domain.model.UserDocument;
+import com.example.votcha.votcha_search.api.mapper.UserElasticMapper;
 import com.example.votcha.votcha_search.domain.repository.UserElasticRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -13,7 +13,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserSyncListener {
-    private final UserElasticRepository userElasticRepository;
+    private final UserElasticRepository userElasticRepo;
+    private final UserElasticMapper  userElasticMapper;
 
     /**
      * @EventListener: "Means I am listening this type of message".
@@ -27,14 +28,7 @@ public class UserSyncListener {
             logDetails = "'Syncing user to ES: ' + #event.email"
     )
     public void handleUserCreatedEvent(UserCreatedSyncEvent event){
-        UserDocument userDocument = UserDocument.builder()
-                .id(event.id())
-                .email(event.email())
-                .fullName(event.fullName())
-                .createdAt(event.createdAt())
-                .role(event.role())
-                .build();
-        userElasticRepository.save(userDocument);
+        userElasticRepo.save(userElasticMapper.userCreatedSyncToUserDocument(event));
     }
 
     @EventListener
@@ -45,7 +39,7 @@ public class UserSyncListener {
             logDetails = "'Deleting user from ES: ' + #event.id"
     )
     public void handleUserDeletedEvent(UserDeletedSyncEvent event){
-        userElasticRepository.deleteById(event.id());
+        userElasticRepo.deleteById(event.id());
     }
 
 }

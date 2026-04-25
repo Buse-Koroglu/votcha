@@ -26,10 +26,7 @@ public class DashboardReportingService {
     }
 
     public long getTodayRegistrationCount(){
-        Instant startOfToday = LocalDate
-                .now(ZoneId.systemDefault())
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant();
+        Instant startOfToday = getToday();
 
         return userElasticRepository.countByCreatedAtAfter(startOfToday);
     }
@@ -39,15 +36,18 @@ public class DashboardReportingService {
     }
 
     public long getTodayEventsCount(){
-        Instant startOfToday = LocalDate
-                .now(ZoneId.systemDefault())
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant();
+        Instant startOfToday = getToday();
         return eventElasticRepository.countByCreatedAtAfter(startOfToday);
     }
 
     public List<EventDocument> getMostVotedEvents(int limit){
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "totalVoteCount"));
 
-        return eventElasticRepository.findAll(pageable).getContent();   }
+        return eventElasticRepository.findAll(pageable).getContent();
+    }
+    public Instant getToday(){
+        return LocalDate.now(ZoneId.systemDefault())
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant();
+    }
 }

@@ -17,6 +17,7 @@ import com.example.votcha.users.domain.exception.UserNotFoundException;
 import com.example.votcha.users.domain.model.Role;
 import com.example.votcha.users.domain.model.Users;
 import com.example.votcha.users.domain.repository.UsersRepo;
+import com.example.votcha.votcha_search.api.mapper.EventElasticMapper;
 import com.example.votcha.votes.api.dto.VoteResponseDto;
 import com.example.votcha.votes.service.VoteService;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +45,7 @@ public class EventServiceTest {
     @Mock private EventMapper eventMapper;
     @Mock private Users mockUser;
     @Mock VoteService voteService;
+    @Mock EventElasticMapper eventElasticMapper;
     @Mock private ApplicationEventPublisher eventPublisher;
     @InjectMocks private EventService eventService;
 
@@ -216,8 +218,6 @@ public class EventServiceTest {
         // Arrange
         String invalidEventId = "ghost-event";
 
-        // Act
-        given(eventsRepo.findByIdAndCreator(invalidEventId, mockUser)).willReturn(Optional.empty());
 
         // Assert:
         assertThatThrownBy(() -> eventService.getUserEvent(mockUser, invalidEventId))

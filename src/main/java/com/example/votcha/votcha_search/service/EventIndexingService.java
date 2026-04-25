@@ -5,6 +5,7 @@ import com.example.votcha.events.domain.repository.EventsRepo;
 import com.example.votcha.votcha_search.api.dto.data.OptionSyncData;
 import com.example.votcha.votcha_search.api.dto.response.EventSyncResponse;
 import com.example.votcha.votcha_search.api.mapper.EventElasticMapper;
+import com.example.votcha.votcha_search.api.mapper.OptionElasticMapper;
 import com.example.votcha.votcha_search.domain.model.EventDocument;
 import com.example.votcha.votcha_search.domain.model.OptionDocument;
 import com.example.votcha.votcha_search.domain.repository.EventElasticRepository;
@@ -21,8 +22,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EventIndexingService {
     private final EventsRepo eventRepo;
-    private final EventElasticRepository eventElasticRepository;
+    private final EventElasticRepository eventElasticRepo;
+
     private final EventElasticMapper eventMapper;
+    private final OptionElasticMapper optionMapper;
 
     @Transactional(readOnly=true)
     public EventSyncResponse syncAllEvents() {
@@ -37,7 +40,7 @@ public class EventIndexingService {
             List<EventDocument> documents = eventPage.getContent().stream().map(
                     e -> {
                             List<OptionDocument> optionDocuments = e.getOptions().stream()
-                                            .map(eventMapper::optionToOptionDocument).toList();
+                                            .map(optionMapper::optionToOptionDocument).toList();
                             long totalVotes = optionDocuments.stream().mapToLong(OptionDocument::getVoteCount).sum();
 
                             return eventMapper.eventToEventDocument(e, totalVotes,  optionDocuments);
@@ -45,7 +48,7 @@ public class EventIndexingService {
             ).toList();
 
             if (!documents.isEmpty()) {
-                eventElasticRepository.saveAll(documents);
+                eventElasticRepo.saveAll(documents);
                 totalSynced += documents.size();
             }
             pageNumber++;
@@ -62,13 +65,13 @@ public class EventIndexingService {
     }
 
     public void updateEventCurrentVoteCount(String eventId, Long currentCount,List<OptionSyncData> updatedOptions){
-        eventElasticRepository.findById(eventId).ifPresent(doc -> {
+        eventElasticRepo.findById(eventId).ifPresent(doc -> {
             doc.setTotalVoteCount(currentCount);
             List<OptionDocument> optionDocuments = updatedOptions.stream()
-                        .map(eventMapper::optionSyncToOptionDocument).toList();
+                        .map(optionMapper::optionSyncToOptionDocument).toList();
 
             doc.setOptions(optionDocuments);
-            eventElasticRepository.save(doc);
+            eventElasticRepo.save(doc);
         });
     }
 }

@@ -1,17 +1,18 @@
 package com.example.votcha.votcha_search.api.mapper;
 
 import com.example.votcha.events.domain.model.Event;
-import com.example.votcha.options.domain.model.Option;
-import com.example.votcha.votcha_search.api.dto.data.OptionSyncData;
 import com.example.votcha.votcha_search.api.dto.event.EventCreatedSyncEvent;
 import com.example.votcha.votcha_search.domain.model.EventDocument;
 import com.example.votcha.votcha_search.domain.model.OptionDocument;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Component
 public class EventElasticMapper {
+    private final OptionElasticMapper optionElasticMapper;
 
     public EventDocument eventToEventDocument(Event event, long totalVotes, List<OptionDocument> optionDocuments) {
         return EventDocument.builder()
@@ -42,7 +43,7 @@ public class EventElasticMapper {
                 .totalVoteCount(totalVotes)
                 .options(
                         event.getOptions().stream()
-                                .map(this::optionToOptionSyncData)
+                                .map(optionElasticMapper::optionToOptionSyncData)
                                 .toList()
                 ).build();
     }
@@ -61,25 +62,5 @@ public class EventElasticMapper {
                 .options(optionDocuments)
                 .build();
     }
-    public OptionSyncData optionToOptionSyncData(Option option) {
-        return OptionSyncData.builder()
-                .voteCount(option.getVoteCount())
-                .content(option.getContent())
-                .id(option.getId())
-                .build();
-    }
-    public OptionDocument optionToOptionDocument(Option option){
-        return OptionDocument.builder()
-                .id(option.getId())
-                .content(option.getContent())
-                .voteCount(option.getVoteCount())
-                .build();
-    }
-    public OptionDocument optionSyncToOptionDocument(OptionSyncData opt){
-        return OptionDocument.builder()
-                .id(opt.id())
-                .content(opt.content())
-                .voteCount(opt.voteCount())
-                .build();
-    }
+
 }

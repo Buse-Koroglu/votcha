@@ -39,38 +39,6 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
      * Java does not trust this certificate by default, which causes "PKIX path building failed" errors.
      * This method manually loads the 'ca.crt' and adds it to a temporary TrustStore so the app can communicate securely.
      */
-//    private SSLContext createSslContext() {
-//        try{
-//            // Standard factory to handle X.509 type certificates
-//            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-//            Certificate ca;
-//
-//            // Load the certificate file from the 'src/main/resources' folder
-//            try(InputStream is = ElasticsearchConfig.class.getClassLoader().getResourceAsStream("ca.crt")){
-//                if(is == null){
-//                    throw new RuntimeException("ca.crt not found");
-//                }
-//                ca = cf.generateCertificate(is);
-//            }
-//
-//            // Create an empty in-memory KeyStore (TrustStore)
-//            KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-//            trustStore.load(null, null);
-//            // Add the Elasticsearch CA certificate to our custom TrustStore
-//            trustStore.setCertificateEntry("ca", ca);
-//
-//            // Initialize a TrustManagerFactory with our custom TrustStore
-//            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-//            tmf.init(trustStore);
-//
-//            // Initialize SSL context using the TLS protocol and our custom TrustManagers
-//            SSLContext sslContext = SSLContext.getInstance("TLS");
-//            sslContext.init(null, tmf.getTrustManagers(), null);
-//            return  sslContext;
-//        } catch (CertificateException | IOException  | KeyStoreException | NoSuchAlgorithmException | KeyManagementException e) {
-//            throw new RuntimeException("Elasticsearch ssl context initialization failed", e);
-//        }
-//    }
     private SSLContext createSslContext() {
         try {
             File file = new File(crtPath);

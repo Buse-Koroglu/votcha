@@ -3,6 +3,7 @@ package com.example.votcha.votcha_search.service;
 import com.example.votcha.users.domain.model.Users;
 import com.example.votcha.users.domain.repository.UsersRepo;
 import com.example.votcha.votcha_search.api.dto.response.UserSyncResponse;
+import com.example.votcha.votcha_search.api.mapper.UserElasticMapper;
 import com.example.votcha.votcha_search.domain.model.UserDocument;
 import com.example.votcha.votcha_search.domain.repository.UserElasticRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserIndexingService {
     private final UsersRepo  usersRepo;
-    private final UserElasticRepository userElasticRepository;
+    private final UserElasticRepository userElasticRepo;
+
+    private final UserElasticMapper userElasticMapper;
 
     @Transactional(readOnly=true)
     public UserSyncResponse syncAllUsers() {
@@ -31,16 +34,9 @@ public class UserIndexingService {
         do {
             usersPage = usersRepo.findAll(PageRequest.of(pageNumber, pageSize));
             List<UserDocument> documents = usersPage.getContent().stream()
-                    .map(user -> UserDocument.builder()
-                                .id(user.getId())
-                                .email(user.getEmail())
-                                .fullName(user.getFirstName() + " " + user.getLastName())
-                                .createdAt(user.getCreatedAt())
-                                .role(user.getRole())
-                            .build()
-                    ).toList();
+                    .map(userElasticMapper::userToUserDocument).toList();
             if(!documents.isEmpty()) {
-                userElasticRepository.saveAll(documents);
+                userElasticRepo.saveAll(documents);
                 totalSynced += documents.size();
             }
             pageNumber++;
