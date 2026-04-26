@@ -19,7 +19,8 @@ spring:
     username: "elastic"
     password: "enes.13"
     crt:
-      path: ${CRT_PATH:"C:\Users\ASUS\Desktop\CloudProject\votcha\certs\ca.crt"}
+      #path: ${CRT_PATH:"C:\Users\ASUS\Desktop\CloudProject\votcha\certs\ca.crt"}
+      path: ${CRT_PATH:/home/enes/Documents/votcha/certs/ca.crt}
   main:
     banner-mode: off # Don't show Spring logs
 

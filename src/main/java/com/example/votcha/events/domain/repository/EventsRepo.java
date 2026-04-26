@@ -2,6 +2,7 @@ package com.example.votcha.events.domain.repository;
 
 import com.example.votcha.events.domain.model.Event;
 import com.example.votcha.users.domain.model.Users;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -37,4 +38,9 @@ public interface EventsRepo extends JpaRepository<Event, String> {
            \s""")
     int closeExpiredEvents(Instant deadline);
 
+    @Query("SELECT e.id FROM Event e WHERE e.status = 'OPEN' AND e.deadline  < :now")
+    List<String> findExpiredEventIds(Instant now);
+
+    @EntityGraph(attributePaths = {"options"})
+    List<Event> findAllByIdIn(List<String> expiredIds);
 }

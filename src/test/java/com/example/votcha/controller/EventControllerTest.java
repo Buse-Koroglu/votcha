@@ -213,7 +213,7 @@ public class EventControllerTest {
     @DisplayName("Partial Update (Patch) - Should return 200 OK and updated data.")
     void patchEvent_returns200_whenEventPatched() throws Exception{
         // Arrange
-        UpdateEventRequestDto request = new UpdateEventRequestDto("Meet Event","Today",deadline,patchOptions);
+        UpdateEventRequestDto request = new UpdateEventRequestDto("Meet Event","Today",deadline);
 
         // Act
         when(eventService.updateUserEvents(mockUser, EVENT_ID,request)).thenReturn(standardResponse);
@@ -242,7 +242,7 @@ public class EventControllerTest {
     @DisplayName("Invalid Patch Request - Should return 400 bad request.")
     void patchEvent_returns400_whenInvalidRequest() throws Exception{
         // Arrange
-        UpdateEventRequestDto request = new UpdateEventRequestDto("","",null, List.of()); // for the update deadline can be null but title and description invalid now.
+        UpdateEventRequestDto request = new UpdateEventRequestDto("","",null); // for the update deadline can be null but title and description invalid now.
 
         // Act & Assert
         mockMvc.perform(patch("/api/events/{id}",EVENT_ID)

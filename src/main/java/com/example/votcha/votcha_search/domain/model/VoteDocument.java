@@ -28,8 +28,8 @@ public class VoteDocument {
     @Field(type = FieldType.Keyword)
     private String voterId;
 
-    @Field(type = FieldType.Text)
-    private String voterFullName;
+    @Field(type = FieldType.Keyword)
+    private String voterEmail;
 
     @Field(type = FieldType.Keyword)
     private String eventId;

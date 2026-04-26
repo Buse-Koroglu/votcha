@@ -13,7 +13,7 @@ public class VoteElasticMapper {
                 .optionId(vote.getOption().getId())
                 .optionContent(vote.getOption().getContent())
                 .voterId(vote.getVoter().getId())
-                .voterFullName(vote.getVoter().getFirstName() + " " + vote.getVoter().getLastName())
+                .voterEmail(vote.getVoter().getEmail())
                 .eventId(vote.getEventId())
                 .eventTitle(vote.getOption().getEvent().getTitle())
                 .createdAt(vote.getCreatedAt())
@@ -27,7 +27,7 @@ public class VoteElasticMapper {
                 .optionId(syncEvent.optionId())
                 .optionContent(syncEvent.optionContent())
                 .voterId(syncEvent.voterId())
-                .voterFullName(syncEvent.voterFullName())
+                .voterEmail(syncEvent.voterEmail())
                 .eventId(syncEvent.eventId())
                 .eventTitle(syncEvent.eventTitle())
                 .createdAt(syncEvent.createdAt())
@@ -41,7 +41,7 @@ public class VoteElasticMapper {
                 vote.getOption().getId(),
                 vote.getOption().getContent(),
                 vote.getVoter().getId(),
-                vote.getVoter().getFirstName() + " " + vote.getVoter().getLastName(),
+                vote.getVoter().getEmail(),
                 vote.getEventId(),
                 vote.getOption().getEvent().getTitle(),
                 vote.getCreatedAt(),

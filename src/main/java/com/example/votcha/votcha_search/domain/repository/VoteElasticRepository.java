@@ -15,6 +15,7 @@ public interface VoteElasticRepository extends ElasticsearchRepository<VoteDocum
     @Query("{\"range\": {\"createdAt\": {\"gte\": \"?0\"}}}")
     long countByCreatedAtAfter(Instant time);
 
+
     long countByVoterId(String voterId);
 
     long countByVoterIdAndIsWinnerTrue(String voterId);

@@ -1,15 +1,11 @@
 package com.example.votcha.events.api.dto;
 
-import com.example.votcha.options.api.dto.OptionRequestDto;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 import java.time.Instant;
-import java.util.List;
 
 @Builder
 public record UpdateEventRequestDto(
@@ -22,12 +18,7 @@ public record UpdateEventRequestDto(
         String description,
 
         @Future(message = "deadline must be in the future")
-        Instant deadline,
-
-        @NotNull(message = "option list cannot be null")
-        @Size(min = 2, message = "an event must have at least 2 options")
-        @Valid
-        List<OptionRequestDto> options
+        Instant deadline
 
 ) {
 }

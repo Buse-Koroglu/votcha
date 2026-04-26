@@ -7,7 +7,7 @@ public record VoteCreatedSyncEvent(
         String optionId,
         String optionContent,
         String voterId,
-        String voterFullName,
+        String voterEmail,
         String eventId,
         String eventTitle,
         Instant createdAt,

@@ -17,14 +17,13 @@ import com.example.votcha.users.api.mapper.UsersMapper;
 import com.example.votcha.users.domain.exception.UserNotFoundException;
 import com.example.votcha.users.domain.model.Users;
 import com.example.votcha.users.domain.repository.UsersRepo;
-import com.example.votcha.votcha_search.api.dto.event.EventCreatedSyncEvent;
 import com.example.votcha.votcha_search.api.dto.event.EventDeletedSyncEvent;
 import com.example.votcha.votcha_search.api.mapper.EventElasticMapper;
+import com.example.votcha.votcha_search.service.VoteIndexingService;
 import com.example.votcha.votes.api.dto.VoteResponseDto;
 import com.example.votcha.votes.service.VoteService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -32,28 +31,30 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventService {
     private final EventsRepo eventsRepo;
+    private final UsersRepo  usersRepo;
+    private final OptionRepository optionRepo;
+
     private final EventMapper eventMapper;
     private final UsersMapper usersMapper;
     private final EventElasticMapper eventElasticMapper;
-    private final UsersRepo  usersRepo;
-    private final OptionRepository optionRepo;
+
     private final SystemActionLogger systemActionLogger;
     private final VoteService  voteService;
     private final ApplicationEventPublisher eventPublisher;
 
+    private final VoteIndexingService  voteIndexingService;
+
     public void publishEventUpdate(Event event) {
         long currentTotalVotes = event.getTotalVoteCount();
 
-        EventCreatedSyncEvent syncEvent = eventElasticMapper.eventToEventCreatedSyncEvent(event, currentTotalVotes);
-
-        eventPublisher.publishEvent(syncEvent);
+        eventPublisher.publishEvent(eventElasticMapper.eventToEventCreatedSyncEvent(event, currentTotalVotes));
     }
 
 
@@ -161,13 +162,28 @@ public class EventService {
 
     @Transactional
     public  void closeExpiredEvents() {
-        Instant now = Instant.now();
-        int counts = eventsRepo.closeExpiredEvents(now);
-        if(counts == 0) {
-            return;
-        }
 
+        Instant now = Instant.now();
+
+        // Get expired event ids
+        List<String> expiredIds = eventsRepo.findExpiredEventIds(now);
+        if(expiredIds.isEmpty()) return;
+
+        // Set Status as 'CLOSED' the expired events then send the log.
+        int counts = eventsRepo.closeExpiredEvents(now);
         sendToLoggerExecute("EXPIRED_EVENTS_CLOSED", "Closed " + counts + " expired events", () -> {});
+
+        // Retrieve all the events using the ids
+        List<Event> closedEvents = eventsRepo.findAllByIdIn(expiredIds);
+
+        for(Event event: closedEvents){
+            // Marks the winner option
+            Optional<Option> winnerOption = determineAndSetWinner(event);
+            publishEventUpdate(event);
+            winnerOption.ifPresent(
+                    option -> voteIndexingService.markWinnerVotesInElastic(option.getId())
+            );
+        }
 
     }
     private void sendToLoggerExecute(String action, String details,  Runnable task){
@@ -178,6 +194,25 @@ public class EventService {
                 "SYSTEM_SCHEDULER",
                 task
         );
+    }
+    // Set to true the most voted option
+    public Optional<Option> determineAndSetWinner(Event event){
+        int maxVotes = event.getOptions().stream()
+                .mapToInt(
+                        Option::getVoteCount
+                )
+                .max()
+                .orElse(0);
+
+        if(maxVotes <= 0) return Optional.empty();
+
+        Optional<Option> winner = event.getOptions().stream()
+                .filter(
+                        o -> o.getVoteCount() == maxVotes
+                ).findFirst();
+        winner.ifPresent(o -> o.setWinner(true));
+
+        return winner;
     }
 
 }

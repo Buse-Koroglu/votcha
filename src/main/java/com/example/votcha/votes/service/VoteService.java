@@ -57,7 +57,6 @@ public class VoteService {
 
         Users voter = usersRepo.findById(userId).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", userId)));
         Vote savedVote = voteRepository.saveAndFlush(voteMapper.toEntity(option, voter));
-
         publishVoteUpdateEvent(option.getEvent().getId());
         eventPublisher.publishEvent(voteElasticMapper.voteToVoteCreatedSyncEvent(savedVote));
 
@@ -96,6 +95,7 @@ public class VoteService {
         Vote updatedVote = voteRepository.saveAndFlush(vote);
 
         publishVoteUpdateEvent(option.getEvent().getId());
+        eventPublisher.publishEvent(voteElasticMapper.voteToVoteCreatedSyncEvent(updatedVote));
 
         return voteMapper.toResponse(updatedVote);
     }

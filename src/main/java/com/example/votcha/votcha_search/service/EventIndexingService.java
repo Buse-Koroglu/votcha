@@ -74,4 +74,6 @@ public class EventIndexingService {
             eventElasticRepo.save(doc);
         });
     }
+
+
 }

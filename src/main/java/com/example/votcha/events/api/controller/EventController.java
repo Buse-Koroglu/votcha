@@ -46,7 +46,8 @@ public class EventController implements EventApi {
 
     @BusinessAction(action = "EVENT_UPDATED", domain = "EVENTS", logDetails = "'Event ID: ' + #id")
     @Override
-    public EventResponseDto updateEvent(Users user, String id, UpdateEventRequestDto request) {return eventService.updateUserEvents(user, id, request);}
+    public EventResponseDto updateEvent(Users user, String id, UpdateEventRequestDto request) {
+        return eventService.updateUserEvents(user, id, request);}
 
     @Override
     public CreatorResponse getEventCreatorSummary(Users user, String creatorId) {
