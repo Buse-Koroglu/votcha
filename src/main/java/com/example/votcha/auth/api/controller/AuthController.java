@@ -32,11 +32,9 @@ public class AuthController implements AuthApi{
     public ResponseEntity<AuthResponseDto> authenticate( AuthRequestDto request) {
         AuthResponseDto loginResponse = authService.login(request);
         ResponseCookie refreshCookie = cookieHelper.generateRefreshTokenCookie(loginResponse.refreshToken());
-        ResponseCookie loggedInFlag = cookieHelper.generateLoggedInFlagCookie(true);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, loggedInFlag.toString())
                 .body(new AuthResponseDto(loginResponse.accessToken(), loginResponse.refreshToken(), loginResponse.message()));
 
     }

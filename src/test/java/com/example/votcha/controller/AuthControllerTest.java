@@ -78,16 +78,11 @@ public class AuthControllerTest {
                 .httpOnly(true)
                 .path("/")
                 .build();
-        ResponseCookie dummyFlagCookie = ResponseCookie.from("logged_in", "true")
-                .httpOnly(false)
-                .path("/")
-                .build();
 
         // Act
         when(authService.login(any(AuthRequestDto.class))).thenReturn(expectedResponse);
 
         when(cookieHelper.generateRefreshTokenCookie(any(String.class))).thenReturn(dummyRefreshCookie);
-        when(cookieHelper.generateLoggedInFlagCookie(true)).thenReturn(dummyFlagCookie);
 
 
         // Act & Assert
