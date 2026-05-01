@@ -5,13 +5,13 @@ import com.example.votcha.events.domain.model.Event;
 import com.example.votcha.options.domain.exception.OptionNotFoundException;
 import com.example.votcha.options.domain.model.Option;
 import com.example.votcha.options.domain.repository.OptionRepository;
+import com.example.votcha.redis.vote.service.VoteRedisService;
 import com.example.votcha.users.domain.exception.UserNotFoundException;
 import com.example.votcha.users.domain.model.Users;
 import com.example.votcha.users.domain.repository.UsersRepo;
 import com.example.votcha.votcha_search.api.dto.data.OptionSyncData;
 import com.example.votcha.votcha_search.api.dto.event.VoteCountUpdatedSyncEvent;
 import com.example.votcha.votcha_search.api.dto.event.VoteDeletedSyncEvent;
-import com.example.votcha.votcha_search.api.mapper.EventElasticMapper;
 import com.example.votcha.votcha_search.api.mapper.OptionElasticMapper;
 import com.example.votcha.votcha_search.api.mapper.VoteElasticMapper;
 import com.example.votcha.votes.api.dto.VoteRequestDto;
@@ -43,6 +43,8 @@ public class VoteService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final VoteElasticMapper voteElasticMapper;
+    private final VoteRedisService voteRedisService;
+
 
     @Transactional
     public VoteResponseDto createVote(VoteRequestDto request, String userId){
@@ -57,6 +59,14 @@ public class VoteService {
 
         Users voter = usersRepo.findById(userId).orElseThrow( () -> new UserNotFoundException(String.format("User with id %s not found", userId)));
         Vote savedVote = voteRepository.saveAndFlush(voteMapper.toEntity(option, voter));
+
+        // redis vote create
+        voteRedisService.createVote(
+                userId,
+                option.getEvent().getId(),
+                option.getId()
+        );
+
         publishVoteUpdateEvent(option.getEvent().getId());
         eventPublisher.publishEvent(voteElasticMapper.voteToVoteCreatedSyncEvent(savedVote));
 
@@ -78,6 +88,8 @@ public class VoteService {
         String voteId = vote.getId();
         voteRepository.delete(vote);
         voteRepository.flush();
+        // redis delete vote
+        voteRedisService.deleteVote(user.getId(), eventId);
 
         publishVoteUpdateEvent(eventId);
         eventPublisher.publishEvent(new VoteDeletedSyncEvent(voteId));
@@ -93,6 +105,12 @@ public class VoteService {
 
         voteMapper.update(option, vote);
         Vote updatedVote = voteRepository.saveAndFlush(vote);
+        // redis update vote
+        voteRedisService.updateVote(
+                user.getId(),
+                option.getEvent().getId(),
+                option.getId()
+        );
 
         publishVoteUpdateEvent(option.getEvent().getId());
         eventPublisher.publishEvent(voteElasticMapper.voteToVoteCreatedSyncEvent(updatedVote));
@@ -101,6 +119,9 @@ public class VoteService {
     }
 
     public VoteResponseDto getUserVoteForEvent(String userId, String eventId) {
+        // redis get vote
+        voteRedisService.getUserVote(userId,eventId);
+
         return voteRepository
                 .findByVoter_IdAndOption_Event_Id(userId, eventId)
                 .map(voteMapper::toResponse)
