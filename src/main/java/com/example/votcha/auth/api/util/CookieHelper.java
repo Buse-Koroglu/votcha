@@ -24,16 +24,6 @@ public class CookieHelper {
                 .build();
     }
 
-    public ResponseCookie generateLoggedInFlagCookie(boolean isLoggedIn){
-        long maxAge = isLoggedIn ? refreshTokenExpiration : 0;
-        String value = isLoggedIn ? "true" : "";
-        return ResponseCookie.from("logged_in", value)
-                .path("/")
-                .httpOnly(false)
-                .maxAge(maxAge)
-                .build();
-    }
-
     public ResponseCookie getCleanRefreshTokenCookie() {
         return ResponseCookie.from("refreshToken","")
                 .path("/")
@@ -46,7 +36,6 @@ public class CookieHelper {
     public HttpHeaders getLogoutHeaders(){
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.SET_COOKIE, getCleanRefreshTokenCookie().toString());
-        headers.add(HttpHeaders.SET_COOKIE, generateLoggedInFlagCookie(false).toString());
         return headers;
     }
 }

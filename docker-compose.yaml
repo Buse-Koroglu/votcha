@@ -1,10 +1,18 @@
 services:
+  redis:
+    extends:
+      service: redis
+      file: deploy/redis.yaml
+    networks:
+      - votcha_votcha_network
   app:
     extends:
       file: deploy/backend.yaml
       service: app
     networks:
       - votcha_votcha_network
+    depends_on:
+      - redis
   frontend:
     extends:
       file: deploy/frontend.yaml
@@ -35,6 +43,8 @@ services:
 networks:
   votcha_votcha_network:
     external: true
+
 volumes:
+  redis_vol:
   votcha_vol:
     driver: local
