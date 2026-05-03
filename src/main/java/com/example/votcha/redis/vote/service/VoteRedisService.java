@@ -56,5 +56,13 @@ public class VoteRedisService {
                 .get("vote:user:" + userId + ":event:" + eventId);
     }
 
+    public long getTotalVoteCount(String eventId) {
+        return redisTemplate.opsForHash()
+                .values("vote:event:" + eventId)
+                .stream()
+                .mapToLong(v -> Long.parseLong(v.toString()))
+                .sum();
+    }
+
 }
 

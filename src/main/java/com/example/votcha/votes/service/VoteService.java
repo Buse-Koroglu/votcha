@@ -145,6 +145,7 @@ public class VoteService {
     }
 
     private long getTotalVoteCountForEvent(String eventId) {
-        return voteRepository.countByOption_Event_Id(eventId);
+        return voteRedisService.getTotalVoteCount(eventId); // O(1) we are getting total vote count for event from redis not using COUNT(*) in db.
+        // return voteRepository.countByOption_Event_Id(eventId);
     }
 }
