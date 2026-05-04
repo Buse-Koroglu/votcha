@@ -12,6 +12,7 @@ import com.example.votcha.events.domain.model.Event;
 import com.example.votcha.events.domain.repository.EventsRepo;
 import com.example.votcha.options.domain.model.Option;
 import com.example.votcha.options.domain.repository.OptionRepository;
+import com.example.votcha.redis.vote.service.VoteRedisService;
 import com.example.votcha.users.api.dto.CreatorResponse;
 import com.example.votcha.users.api.mapper.UsersMapper;
 import com.example.votcha.users.domain.exception.UserNotFoundException;
@@ -50,6 +51,7 @@ public class EventService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final VoteIndexingService  voteIndexingService;
+    private final VoteRedisService redisService;
 
     public void publishEventUpdate(Event event) {
         long currentTotalVotes = event.getTotalVoteCount();
@@ -99,6 +101,7 @@ public class EventService {
     public EventResponseDto deleteUserEvent(Users user, String eventId) {
         Event event = getUserEventIfExist(eventId, user);
         eventsRepo.delete(event);
+        redisService.deleteEventFully(eventId);
         EventDeletedSyncEvent deletedSyncEvent= new EventDeletedSyncEvent(eventId);
         eventPublisher.publishEvent(deletedSyncEvent);
         return eventMapper.toResponse(event, Collections.emptyList());

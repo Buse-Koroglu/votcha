@@ -39,12 +39,12 @@ public class RefreshTokenService {
     public RefreshToken validateAndRotate(String token){
         RefreshToken refreshToken = refreshTokenRepository.findByToken(token).orElseThrow(() -> new RuntimeException("Invalid refresh token"));
         if(refreshToken.isRevoked()){
-            throw new TokenRevokedException("Token revoked");
+            throw new TokenRevokedException("Token is revoked");
         }
         // delete from db if token is expired
         if(isTokenExpired(refreshToken)){
             refreshTokenRepository.delete(refreshToken);
-            throw new TokenExpiredException("Token expired");
+            throw new TokenExpiredException("Token is expired");
         }
         // Rotation
         refreshToken.setRevoked(true);

@@ -11,8 +11,8 @@
 	<groupId>com.example</groupId>
 	<artifactId>votcha</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>votify-meet</name>
-	<description>Votify Meet</description>
+	<name>votcha</name>
+	<description>Votcha</description>
 	<url/>
 	<licenses>
 		<license/>
