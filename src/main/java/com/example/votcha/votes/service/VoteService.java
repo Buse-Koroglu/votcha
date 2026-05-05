@@ -5,6 +5,7 @@ import com.example.votcha.events.domain.model.Event;
 import com.example.votcha.options.domain.exception.OptionNotFoundException;
 import com.example.votcha.options.domain.model.Option;
 import com.example.votcha.options.domain.repository.OptionRepository;
+import com.example.votcha.redis.vote.dto.VoteRedisDto;
 import com.example.votcha.redis.vote.service.VoteRedisService;
 import com.example.votcha.users.domain.exception.UserNotFoundException;
 import com.example.votcha.users.domain.model.Users;
@@ -64,7 +65,8 @@ public class VoteService {
         voteRedisService.createVote(
                 userId,
                 option.getEvent().getId(),
-                option.getId()
+                option.getId(),
+                savedVote.getId()
         );
 
         publishVoteUpdateEvent(option.getEvent().getId());
@@ -109,7 +111,8 @@ public class VoteService {
         voteRedisService.updateVote(
                 user.getId(),
                 option.getEvent().getId(),
-                option.getId()
+                option.getId(),
+                vote.getId()
         );
 
         publishVoteUpdateEvent(option.getEvent().getId());
@@ -120,8 +123,16 @@ public class VoteService {
 
     public VoteResponseDto getUserVoteForEvent(String userId, String eventId) {
         // redis get vote
-        voteRedisService.getUserVote(userId,eventId);
+        VoteRedisDto redisVote = voteRedisService.getUserVote(userId, eventId);
 
+        if (redisVote != null) {
+            return VoteResponseDto.builder()
+                    .id(redisVote.getVoteId())
+                    .optionId(redisVote.getOptionId())
+                    .voterId(redisVote.getUserId())
+                    .build();
+        }
+        // db fallback
         return voteRepository
                 .findByVoter_IdAndOption_Event_Id(userId, eventId)
                 .map(voteMapper::toResponse)
