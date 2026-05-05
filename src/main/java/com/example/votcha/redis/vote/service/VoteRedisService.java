@@ -1,5 +1,6 @@
 package com.example.votcha.redis.vote.service;
 
+import com.example.votcha.redis.vote.dto.VoteRedisDto;
 import com.example.votcha.redis.vote.dto.VoteRedisResultType;
 import com.example.votcha.redis.vote.executor.VoteRedisLuaExecutor;
 import com.example.votcha.redis.vote.mapper.VoteResultMapper;
@@ -8,6 +9,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -25,35 +28,57 @@ public class VoteRedisService {
         return "vote:event:" + eventId;
     }
 
-    public VoteRedisResultType createVote(String userId, String eventId, String optionId) {
+    public VoteRedisResultType createVote(String userId, String eventId, String optionId, String voteId) {
 
-        String userKey = buildUserKey(userId, eventId);
+        String result = executor.executeVoteScript(
+                List.of(buildUserKey(userId, eventId), buildEventKey(eventId)),
+                voteId,
+                optionId,
+                userId,
+                "false"
+        );
 
-        Boolean exists = redisTemplate.hasKey(userKey);
-        if (Boolean.TRUE.equals(exists)) {
-            return VoteRedisResultType.NOT_CHANGED;
-        }
-
-        String result = executor.executeVoteScript(List.of(userKey,buildEventKey(eventId)),optionId);
         return mapper.stringToVoteResultType(result);
     }
 
 
-    public VoteRedisResultType updateVote(String userId, String eventId, String optionId) {
-        String result = executor.executeVoteScript(List.of(buildUserKey(userId,eventId),buildEventKey(eventId)),optionId);
+    public VoteRedisResultType updateVote(String userId, String eventId, String optionId, String voteId) {
+
+        String result = executor.executeVoteScript(
+                List.of(buildUserKey(userId, eventId), buildEventKey(eventId)),
+                voteId,
+                optionId,
+                userId,
+                "false"
+        );
+
         return mapper.stringToVoteResultType(result);
     }
 
 
     public VoteRedisResultType deleteVote(String userId, String eventId) {
-        String result = executor.executeVoteScript(List.of(buildUserKey(userId, eventId), buildEventKey(eventId)),"null");
+
+        String result = executor.executeVoteScript(
+                List.of(buildUserKey(userId, eventId), buildEventKey(eventId)),
+                "", "", "", "true"
+        );
+
         return mapper.stringToVoteResultType(result);
     }
 
 
-    public String getUserVote(String userId, String eventId) {
-        return redisTemplate.opsForValue()
-                .get("vote:user:" + userId + ":event:" + eventId);
+    public VoteRedisDto getUserVote(String userId, String eventId) {
+
+        Map<Object, Object> map = redisTemplate.opsForHash()
+                .entries(buildUserKey(userId, eventId));
+
+        if (map == null || map.isEmpty()) return null;
+
+        return new VoteRedisDto(
+                Objects.toString(map.get("voteId"), null),
+                Objects.toString(map.get("optionId"), null),
+                Objects.toString(map.get("userId"), null)
+        );
     }
 
     public long getTotalVoteCount(String eventId) {

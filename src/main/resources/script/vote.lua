@@ -1,29 +1,55 @@
 local userKey = KEYS[1]
 local eventKey = KEYS[2]
 
-local newOption = ARGV[1]
+local newVoteId = ARGV[1]
+local newOptionId = ARGV[2]
+local newUserId = ARGV[3]
 
-local oldOption = redis.call('GET', userKey)
+local isDelete = ARGV[4]
 
-if newOption == "null" then
-    if oldOption then
-        redis.call('HINCRBY', eventKey, "option:" .. oldOption, -1)
+local oldOptionId = redis.call('HGET', userKey, 'optionId')
+
+-- DELETE
+if isDelete == "true" then
+    if oldOptionId ~= false and oldOptionId ~= nil then
+        redis.call('HINCRBY', eventKey, "option:" .. oldOptionId, -1)
         redis.call('DEL', userKey)
     end
     return "deleted"
 end
 
-if not oldOption then
-    redis.call('HINCRBY', eventKey, "option:" .. newOption, 1)
-    redis.call('SET', userKey, newOption)
+-- CREATE
+if oldOptionId == false or oldOptionId == nil then
+    redis.call('HINCRBY', eventKey, "option:" .. newOptionId, 1)
+
+    redis.call('HSET', userKey,
+        'voteId', newVoteId,
+        'optionId', newOptionId,
+        'userId', newUserId
+    )
+
     return "created"
 end
 
-if oldOption ~= newOption then
-    redis.call('HINCRBY', eventKey, "option:" .. oldOption, -1)
-    redis.call('HINCRBY', eventKey, "option:" .. newOption, 1)
-    redis.call('SET', userKey, newOption)
+-- UPDATE (option changed)
+if oldOptionId ~= newOptionId then
+    redis.call('HINCRBY', eventKey, "option:" .. oldOptionId, -1)
+    redis.call('HINCRBY', eventKey, "option:" .. newOptionId, 1)
+
+    redis.call('HSET', userKey,
+        'voteId', newVoteId,
+        'optionId', newOptionId,
+        'userId', newUserId
+    )
+
     return "updated"
 end
 
-return "not_changed"
+-- SAME OPTION (for fallback if the user select exist vote already it goes to delete, this is for safety)
+redis.call('HSET', userKey,
+    'voteId', newVoteId,
+    'optionId', newOptionId,
+    'userId', newUserId
+)
+
+return "updated"
