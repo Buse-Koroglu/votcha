@@ -13,6 +13,7 @@ import com.example.votcha.events.service.EventService;
 import com.example.votcha.options.api.dto.OptionRequestDto;
 import com.example.votcha.options.api.dto.OptionResponseDto;
 import com.example.votcha.options.domain.model.Option;
+import com.example.votcha.redis.vote.service.VoteRedisService;
 import com.example.votcha.users.domain.exception.UserNotFoundException;
 import com.example.votcha.users.domain.model.Role;
 import com.example.votcha.users.domain.model.Users;
@@ -47,6 +48,7 @@ public class EventServiceTest {
     @Mock VoteService voteService;
     @Mock EventElasticMapper eventElasticMapper;
     @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private VoteRedisService redisService;
     @InjectMocks private EventService eventService;
 
 

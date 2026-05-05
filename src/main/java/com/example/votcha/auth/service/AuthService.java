@@ -48,7 +48,7 @@ public class AuthService {
         );
         eventPublisher.publishEvent(event);
 
-        return new RegisterResponseDto("User successfully registered");
+        return new RegisterResponseDto("User registered successfully");
     }
 
     public AuthResponseDto login(AuthRequestDto request){

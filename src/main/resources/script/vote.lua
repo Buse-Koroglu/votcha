@@ -1,5 +1,6 @@
 local userKey = KEYS[1]
 local eventKey = KEYS[2]
+local eventUsersKey = KEYS[3]
 
 local newVoteId = ARGV[1]
 local newOptionId = ARGV[2]
@@ -14,6 +15,7 @@ if isDelete == "true" then
     if oldOptionId ~= false and oldOptionId ~= nil then
         redis.call('HINCRBY', eventKey, "option:" .. oldOptionId, -1)
         redis.call('DEL', userKey)
+        redis.call("SREM", eventUsersKey, userKey)
     end
     return "deleted"
 end

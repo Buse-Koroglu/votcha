@@ -4,6 +4,7 @@ import com.example.votcha.redis.vote.dto.VoteRedisDto;
 import com.example.votcha.redis.vote.dto.VoteRedisResultType;
 import com.example.votcha.redis.vote.executor.VoteRedisLuaExecutor;
 import com.example.votcha.redis.vote.mapper.VoteResultMapper;
+import com.example.votcha.redis.vote.util.VoteRedisKeyBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -19,14 +21,8 @@ public class VoteRedisService {
     private final StringRedisTemplate redisTemplate;
     private final VoteRedisLuaExecutor executor;
     private final VoteResultMapper mapper;
+    private final VoteRedisKeyBuilder keyBuilder;
 
-    private String buildUserKey(String userId, String eventId) {
-        return "vote:user:" + userId + ":event:" + eventId;
-    }
-
-    private String buildEventKey(String eventId) {
-        return "vote:event:" + eventId;
-    }
 
     public VoteRedisResultType createVote(String userId, String eventId, String optionId, String voteId) {
 
@@ -89,5 +85,37 @@ public class VoteRedisService {
                 .sum();
     }
 
+    public void deleteEventFully(String eventId){
+        String eventKey = keyBuilder.buildEventKey(eventId);
+        String eventUsersKey = keyBuilder.buildEventUsersKey(eventId);
+
+        Set<String> userKeys = redisTemplate.opsForSet().members(eventUsersKey);
+
+        if(userKeys != null && !userKeys.isEmpty()){
+            redisTemplate.delete(userKeys);
+        }
+
+        redisTemplate.delete(List.of(eventKey, eventUsersKey));
+    }
+
+    public void deleteOptionAndVotes(String eventId, String optionId){
+        String eventKey = keyBuilder.buildEventKey(eventId);
+        String eventUsersKey = keyBuilder.buildEventUsersKey(eventId);
+
+        Set<String> userKeys = redisTemplate.opsForSet().members(eventUsersKey);
+
+        if(userKeys != null && !userKeys.isEmpty()){
+            for(String userKey : userKeys){
+                String userVote = redisTemplate.opsForValue().get(userKey);
+
+                if(optionId.equals(userVote)){
+                    redisTemplate.delete(userKey);
+                    redisTemplate.opsForSet().remove(eventUsersKey,userKey);
+                }
+            }
+        }
+
+        redisTemplate.opsForHash().delete(eventKey+ "option:"+ optionId);
+    }
 }
 

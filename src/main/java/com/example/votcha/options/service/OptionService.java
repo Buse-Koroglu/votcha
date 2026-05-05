@@ -14,6 +14,7 @@ import com.example.votcha.options.domain.exception.OptionNotFoundException;
 import com.example.votcha.options.domain.exception.UnauthorizedException;
 import com.example.votcha.options.domain.model.Option;
 import com.example.votcha.options.domain.repository.OptionRepository;
+import com.example.votcha.redis.vote.service.VoteRedisService;
 import com.example.votcha.users.domain.model.Users;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class OptionService {
     private final EventsRepo eventsRepository;
     private final OptionMapper optionMapper;
     private final EventService eventService;
+    private final VoteRedisService redisService;
 
 
     public OptionResponseDto getUserOption(Users user, String optionId){
@@ -54,6 +56,7 @@ public class OptionService {
             throw new MinimumOptionsException("An Event must maintain at least 2 options.");
         }
         optionRepository.delete(option);
+        redisService.deleteOptionAndVotes(event.getId(), option.getId()); // delete option votes from redis
         optionRepository.flush();
 
         eventService.publishEventUpdate(event);
