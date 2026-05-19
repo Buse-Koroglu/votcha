@@ -1,0 +1,19 @@
+# Service - In service.yaml, selector doesn't require matchLabels, it can directly use the labels defined in the deployment.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: votcha-dev
+spec:
+  type: ClusterIP
+  selector:
+    app: votcha
+    component: postgres
+    tier: db
+  ports:
+  - protocol: TCP
+    port: 5435
+    targetPort: 5432
+
+# kubectl port-forward svc/postgres-service 5435 -n votcha-dev
+  

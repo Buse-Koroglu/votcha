@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app: votcha
+    component: postgres
+    tier: db
+  name: votcha-dev
+
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-ingress

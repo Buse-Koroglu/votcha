@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: cache-vol
+spec:
+  storageClassName: manual
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 500Mi
+  local:
+    path: /home/enes/redis_data # Verinin fiziksel olarak duracağı yer
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - ubuntu

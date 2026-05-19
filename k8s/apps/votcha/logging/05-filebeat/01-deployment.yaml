@@ -1,0 +1,39 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filebeat
+  namespace: votcha-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: votcha
+      component: filebeat
+  template:
+    metadata:
+      labels:
+        app: votcha
+        component: filebeat
+    spec:
+      containers:
+      - name: filebeat
+        image: elastic/filebeat:9.2.0
+        command: ["filebeat", "-e", "--strict.perms=false"]
+        securityContext:
+          runAsUser: 0 # Log dosyalarını okuyabilmesi için Root yetkisi
+        volumeMounts:
+        - name: filebeat-config-volume
+          mountPath: /usr/share/filebeat/filebeat.yml
+          subPath: filebeat.yml
+        - name: app-logs-volume
+          mountPath: /var/log/wedorgo
+          readOnly: true
+      volumes:
+      - name: filebeat-config-volume
+        configMap:
+          name: filebeat-config
+      - name: app-logs-volume
+        hostPath:
+          path: /home/enes/Documents/votcha/logs # Ubuntu makinesindeki gerçek log klasörü
+          type: DirectoryOrCreate

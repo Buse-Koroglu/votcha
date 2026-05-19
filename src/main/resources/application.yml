@@ -87,3 +87,7 @@ initial:
   admin:
     email: ${SUPER_ADMIN_EMAIL:admin@votcha.com}
     password: ${SUPER_ADMIN_PASSWORD:superadmin}
+
+
+elastic:
+  api: bnFDLTg1MEJMQWpBTnlMUE83V2I6anJkbEd6MmFEaW1EY29vRGVLZW5hZw==

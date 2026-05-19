@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: votcha-dev
+spec:
+  type: ClusterIP
+  selector:
+    app: votcha
+    component: backend
+    tier: api
+  ports:
+  - protocol: TCP
+    port: 8090
+    targetPort: 8090

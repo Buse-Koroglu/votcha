@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: votcha
+    component: backend
+    tier: api
+  namespace: votcha-dev
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: votcha
+      component: backend
+      tier: api
+  template:
+    metadata:
+      labels:
+        app: votcha
+        component: backend
+        tier: api
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: backend-container
+          image: ghcr.io/enesuluc/votcha-backend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8090
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-service:5435/votcha"
+              
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+
+            - name: "SPRING_ELASTICSEARCH_URIS"
+              value: "elasticsearch:9200"
+            - name: "SPRING_ELASTICSEARCH_USERNAME"
+              value: "elastic"
+            - name: "SPRING_ELASTICSEARCH_PASSWORD"
+              value: "enes.13"
+            - name: "CRT_PATH"
+              value: "../../../../certs/ca.crt"
+
+            # REDIS CONNECTION ENV VARS
+            - name: "SPRING_DATA_REDIS_HOST"
+              value: "redis-svc"
+            - name: "SPRING_DATA_REDIS_PORT"
+              value: "6379"
+          volumeMounts:
+            - name: elk-cert-volume
+              mountPath: /certs
+              readOnly: true
+      volumes:
+        - name: elk-cert-volume
+          secret:
+            secretName: elk-certs
+            items:
+              - key: ca.crt
+                path: ca.crt

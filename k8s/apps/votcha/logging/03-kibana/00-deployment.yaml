@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: votcha-dev
+  labels:
+    app: votcha
+    component: logging
+    tier: elk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: votcha
+      component: logging
+      tier: elk
+  template:
+    metadata:
+      labels:
+        app: votcha
+        component: logging
+        tier: elk
+    spec:
+      securityContext:
+        fsGroup: 1000
+
+      containers:
+      - name: kibana
+        image: kibana:9.2.0 # ES ile aynı imaj versiyonu
+        ports:
+        - containerPort: 5601
+          name: http
+
+        env:
+        # ConfigMap ve Sabitler
+        - name: SERVER_NAME
+          value: "kibana"
+        - name: ELASTICSEARCH_HOSTS
+          value: "https://elasticsearch:9200" # K8s içindeki ES servis adı
+        - name: ELASTICSEARCH_USERNAME
+          value: "kibana_system"
+
+        # Secret'tan Gelen Hassas Veriler
+        - name: ELASTICSEARCH_PASSWORD
+          valueFrom: { secretKeyRef: { name: elk-secret, key: KIBANA_PASSWORD } }
+        - name: XPACK_SECURITY_ENCRYPTIONKEY
+          valueFrom: { secretKeyRef: { name: elk-secret, key: ENCRYPTION_KEY } }
+        - name: XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY
+          valueFrom: { secretKeyRef: { name: elk-secret, key: ENCRYPTION_KEY } }
+        - name: XPACK_REPORTING_ENCRYPTIONKEY
+          valueFrom: { secretKeyRef: { name: elk-secret, key: ENCRYPTION_KEY } }
+
+        # Sertifika (elk-certs Secret'ından Mount Edilecek) Ayarları
+        - name: SERVER_SSL_ENABLED
+          value: "true"
+        - name: ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES
+          value: "/usr/share/kibana/config/certs/ca.crt"
+        - name: SERVER_SSL_CERTIFICATE
+          value: "/usr/share/kibana/config/certs/kibana.crt"
+        - name: SERVER_SSL_KEY
+          value: "/usr/share/kibana/config/certs/kibana.key"
+        resources:
+          limits:
+            memory: "2Gi"
+          requests:
+            memory: "2Gi"
+
+        volumeMounts:
+        - name: certs-secret-volume
+          mountPath: /usr/share/kibana/config/certs
+          readOnly: true
+        - name: kibana-data
+          mountPath: /usr/share/kibana/data
+
+      volumes:
+      # Önceki adımda imperative şekilde oluşturulan elk-certs Secret'ını klasör olarak bağlıyoruz
+      - name: certs-secret-volume
+        secret:
+          secretName: elk-certs
+      - name: kibana-data
+        persistentVolumeClaim:
+          claimName: kibana-data-claim

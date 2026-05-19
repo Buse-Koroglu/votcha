@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: votcha-dev
+data:
+  logstash.conf: |
+    input {
+      tcp {
+        port => 5000
+      }
+      beats {
+        port => 5044
+      }
+    }
+    filter {
+      # Gelecekte GEOIP falan eklenecek :)
+    }
+    output {
+      elasticsearch {
+        index => "votcha-%{+YYYY.MM.dd}"
+        hosts=> ["${ELASTIC_HOSTS}"]
+        user=> "${ELASTIC_USER}"
+        password=> "${ELASTIC_PASSWORD}"
+        ssl_certificate_authorities => ["/usr/share/logstash/config/certs/ca.crt"]
+        ssl_enabled => true
+      }
+      stdout {
+        codec => rubydebug
+      }
+    }

@@ -1,0 +1,52 @@
+# PV for ELK
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: elk-vol
+  labels:
+    app: votcha
+    component: logging
+    tier: elk
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 5Gi
+  hostPath:
+    path: /data/elk
+---
+# PV for Kibana
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kibana-vol
+  labels:
+    app: votcha
+    component: logging
+    tier: elk
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 2Gi
+  hostPath:
+    path: /data/kibana
+---
+# PVC for Kibana
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kibana-data-claim
+  namespace: votcha-dev
+  labels:
+    app: votcha
+    component: logging
+    tier: elk
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

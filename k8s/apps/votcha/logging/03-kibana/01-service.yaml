@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: votcha-dev
+spec:
+  type: ClusterIP
+  selector:
+    app: votcha
+    component: logging
+    tier: elk
+  ports:
+  - protocol: TCP
+    port: 5601
+    targetPort: 5601
+    name: https

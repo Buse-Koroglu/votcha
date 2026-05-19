@@ -1,0 +1,36 @@
+# PV for Postgres
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-vol
+  labels:
+    app: votcha
+    component: postgres
+    tier: db
+spec:
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 500Mi
+  hostPath:
+    path: /data/postgres
+
+---
+# PVC for Postgres
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-claim 
+  namespace: votcha-dev
+spec:
+  selector:
+    matchLabels:
+      app: votcha
+      component: postgres
+      tier: db
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
