@@ -34,6 +34,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .firstName("Super")
                     .lastName("Admin")
                     .createdAt(Instant.now())
+                    .isVerified(true)
                     .build();
             usersRepo.save(superAdmin);
         }

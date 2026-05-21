@@ -7,18 +7,24 @@ import com.example.votcha.auth.api.util.CookieHelper;
 import com.example.votcha.auth.service.AuthService;
 import com.example.votcha.common.logging.BusinessAction;
 import com.example.votcha.users.api.dto.UsersRequestDto;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
 public class AuthController implements AuthApi{
     private final AuthService authService;
     private final CookieHelper cookieHelper;
+
+    @Value("${spring.mail.frontend.url}")private String frontendUrl;
 
     @BusinessAction(action = "USER_REGISTERED", domain = "AUTH")
     @Override
@@ -63,5 +69,12 @@ public class AuthController implements AuthApi{
         return ResponseEntity.ok()
                 .headers(cookieHelper.getLogoutHeaders())
                 .build();
+    }
+
+    @Override
+    public ResponseEntity<String> verifyAccount(String token, HttpServletResponse response) throws IOException {
+        authService.verifyUser(token);
+        response.sendRedirect(frontendUrl+"/login?verified=true");
+        return ResponseEntity.ok("Verification link sent");
     }
 }

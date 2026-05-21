@@ -3,6 +3,7 @@ package com.example.votcha.common.exception;
 import com.example.votcha.auth.domain.exception.TokenExpiredException;
 import com.example.votcha.auth.domain.exception.TokenNotFoundException;
 import com.example.votcha.auth.domain.exception.TokenRevokedException;
+import com.example.votcha.auth.domain.exception.UserNotVerifiedException;
 import com.example.votcha.events.domain.exception.EventDeadlinePassedException;
 import com.example.votcha.events.domain.exception.EventNotFoundException;
 import com.example.votcha.options.domain.exception.MinimumOptionsException;
@@ -44,7 +45,8 @@ public class    GlobalExceptionHandler {
             EventNotFoundException.class,
             OptionNotFoundException.class,
             VoteNotFoundException.class,
-            TokenNotFoundException.class})
+            TokenNotFoundException.class,
+            UserNotVerifiedException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleResourceNotFoundExceptions(BaseException ex,WebRequest request) {
         logException(ex, HttpStatus.NOT_FOUND, ex.getMessage());

@@ -3,7 +3,9 @@ package com.example.votcha.auth.service;
 import com.example.votcha.auth.api.dto.AuthRequestDto;
 import com.example.votcha.auth.api.dto.RegisterResponseDto;
 import com.example.votcha.auth.api.dto.AuthResponseDto;
+import com.example.votcha.auth.domain.exception.UserNotVerifiedException;
 import com.example.votcha.auth.domain.model.RefreshToken;
+import com.example.votcha.common.notification.EmailService;
 import com.example.votcha.votcha_search.api.dto.event.UserCreatedSyncEvent;
 import com.example.votcha.users.api.dto.UsersRequestDto;
 import com.example.votcha.users.api.mapper.UsersMapper;
@@ -19,6 +21,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -29,6 +33,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final ApplicationEventPublisher eventPublisher;
+    private final EmailService emailService;
 
     public RegisterResponseDto register(UsersRequestDto request){
         usersRepo.findByEmail(request.email()).ifPresent(user -> {
@@ -37,7 +42,12 @@ public class AuthService {
 
         Users user = usersMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token);
+
         usersRepo.save(user);
+        emailService.sendEmail(request, token);
 
         UserCreatedSyncEvent event = new UserCreatedSyncEvent(
                 user.getId(),
@@ -61,6 +71,11 @@ public class AuthService {
 
         Users user = usersRepo.findByEmail(request.email())
                 .orElseThrow( () -> new UserNotFoundException(String.format("User with email %s not found", request.email())));
+
+        if(!user.isVerified()){
+            throw new UserNotVerifiedException("Please verify your email!");
+        }
+
         String jwtToken = jwtService.generateToken(user); // for access token
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user); // for refresh token
         return new AuthResponseDto(jwtToken, refreshToken.getToken(), "User successfully login");
@@ -79,5 +94,12 @@ public class AuthService {
         if (refreshToken != null) {
             refreshTokenService.revokeByToken(refreshToken);
         }
+    }
+
+    public void verifyUser(String token) {
+        Users verifiedUser = usersRepo.findByVerificationToken(token).orElseThrow(() -> new UserNotFoundException("User not found"));
+        verifiedUser.setVerificationToken(null);
+        verifiedUser.setVerified(true);
+        usersRepo.save(verifiedUser);
     }
 }

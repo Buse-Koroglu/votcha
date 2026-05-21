@@ -25,7 +25,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: backend-container
-          image: ghcr.io/enesuluc/votcha-backend:1.0
+          image: ghcr.io/enesuluc/votcha-backend:2.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8090
@@ -55,6 +55,12 @@ spec:
               value: "enes.13"
             - name: "CRT_PATH"
               value: "../../../../certs/ca.crt"
+
+            # Email verification
+            - name: "SPRING_MAIL_BACKEND_URL"
+              value: "https://www.votcha.com"
+            - name: "SPRING_MAIL_FRONTEND_URL"
+              value: "https://www.votcha.com"
 
             # REDIS CONNECTION ENV VARS
             - name: "SPRING_DATA_REDIS_HOST"

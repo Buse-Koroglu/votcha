@@ -30,6 +30,10 @@ public class Users implements UserDetails {
     private String email;
     private String password;
 
+    private String verificationToken;
+
+    private boolean isVerified = false;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Instant createdAt;

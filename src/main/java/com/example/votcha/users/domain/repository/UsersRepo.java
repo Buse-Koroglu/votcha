@@ -5,6 +5,7 @@ import com.example.votcha.users.domain.model.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
@@ -13,5 +14,8 @@ public interface UsersRepo extends JpaRepository<Users, String> {
 
     boolean existsByRole(Role role);
 
+    int deleteByIsVerifiedFalseAndCreatedAtBefore(Instant createdAt);
 
+
+    Optional<Users> findByVerificationToken(String verificationToken);
 }
