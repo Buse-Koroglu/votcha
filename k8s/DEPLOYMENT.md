@@ -96,8 +96,17 @@ kubectl apply -f apps/votcha/logging/06-ingress-rule/
 
 Deploy the stateful relational database components including Persistent Volumes, PVCs, Deployments, and ClusterIP Services.
 
+
+#### Choose one of them based on your development area!!!
+
+##### For production environment (AWS ec2 + RDS database)
 ```bash
-k apply -f data/postgres/
+k apply -f data/potgres-rds
+```
+
+##### For local development, you can use postgres deploy
+```bash
+k apply -f data/postgres/ 
 ```
 
 ### Step 3.2: Redis Distributed Cache Deployment
@@ -118,8 +127,13 @@ k apply -f apps/votcha/backend/
 k apply -f apps/votcha/frontend/
 ```
 
-## 5. Traffic Ingress & Public Edge Routing
-### Step 5.1: Edge Controllers and Domain Mapping rules
+## 5. Monitoring / Observability
+```bash
+k apply -f apps/votcha/monitoring/
+```
+
+## 6. Traffic Ingress & Public Edge Routing
+### Step 6.1: Edge Controllers and Domain Mapping rules
 
 Establish the primary Ingress Controller infrastructure and inject traffic routing manifests to map domain boundaries cleanly to front and back components.
 
@@ -128,7 +142,7 @@ k apply -f core/ingress/
 k apply -f apps/votcha/ingress-rules/
 ```
 
-## 6. Purge & Post-Tear-Down Maintenance (Optional)
+## 7. Purge & Post-Tear-Down Maintenance (Optional)
 
 [WARNING] The following actions will cause immediate and permanent data loss. Only execute these during complete environment refactoring or local disk cleanup routines.
 
