@@ -31,8 +31,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    password: ${SMTP_PASSWORD}
-    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD:test123}
+    username: ${SMTP_USERNAME:test@gmail.com}
     backend:
       url: http://localhost:8090
     frontend:
@@ -99,7 +99,7 @@ logging:
 # Initial superadmin email and password , comes from .env
 initial:
   admin:
-    email: ${SUPER_ADMIN_EMAIL}
-    password: ${SUPER_ADMIN_PASSWORD}
+    email: ${SUPER_ADMIN_EMAIL:test@gmail.com}
+    password: ${SUPER_ADMIN_PASSWORD:test123}
 
 kind: Application
