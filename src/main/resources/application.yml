@@ -31,8 +31,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    password: xmeruwzxcgamsroe
-    username: votcha.support@gmail.com
+    password: ${SMTP_PASSWORD}
+    username: ${SMTP_USERNAME}
     backend:
       url: http://localhost:8090
     frontend:
@@ -99,11 +99,7 @@ logging:
 # Initial superadmin email and password , comes from .env
 initial:
   admin:
-    email: ${SUPER_ADMIN_EMAIL:admin@votcha.com}
-    password: ${SUPER_ADMIN_PASSWORD:superadmin}
-
-
-elastic:
-  api: bnFDLTg1MEJMQWpBTnlMUE83V2I6anJkbEd6MmFEaW1EY29vRGVLZW5hZw==
+    email: ${SUPER_ADMIN_EMAIL}
+    password: ${SUPER_ADMIN_PASSWORD}
 
 kind: Application

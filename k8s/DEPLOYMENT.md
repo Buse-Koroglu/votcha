@@ -19,7 +19,7 @@ Inject the Docker Registry credentials into the cluster to allow Kubernetes to s
 kubectl create secret docker-registry ghcr-secret \
   --docker-server=ghcr.io \
   --docker-username=EnesUluc \
-  --docker-password=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 \
+  --docker-password=<token> \
   --docker-email=enesuluc04@gmail.com \
   -n votcha-dev
 ```
@@ -49,7 +49,7 @@ kubectl get pods -n votcha-dev -w
 Securely update the internal kibana_system user password to enable proper handshake and data mapping authorization between Kibana and Elasticsearch.
 
 ```bash
-kubectl exec -it elasticsearch-0 -n votcha-dev -- curl -s -X POST --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -u "elastic:enes.13" -H "Content-Type: application/json" https://localhost:9200/_security/user/kibana_system/_password -d '{"password":"enes.13"}'
+kubectl exec -it elasticsearch-0 -n votcha-dev -- curl -s -X POST --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt -u "elastic:enes.13" -H "Content-Type: application/json" https://localhost:9200/_security/user/kibana_system/_password -d '{"password":"***"}'
 ```
 
 ### Step 2.4: TLS Certificate Extraction
@@ -97,14 +97,18 @@ kubectl apply -f apps/votcha/logging/06-ingress-rule/
 Deploy the stateful relational database components including Persistent Volumes, PVCs, Deployments, and ClusterIP Services.
 
 
-#### Choose one of them based on your development area!!!
+#### Deploy the primary relational database layer used by the platform. Choose the appropriate deployment model based on your target environment:
 
-##### For production environment (AWS ec2 + RDS database)
+##### Production Environment (AWS RDS) 
+Use the managed PostgreSQL instance hosted on AWS RDS. 
+This is the recommended deployment option for cloud environment.
 ```bash
 k apply -f data/potgres-rds
 ```
 
-##### For local development, you can use postgres deploy
+##### Local Development Environment
+Deploy PostgreSQL directly inside the Kubernetes cluster for local testing and development purposes.
+
 ```bash
 k apply -f data/postgres/ 
 ```
@@ -127,9 +131,17 @@ k apply -f apps/votcha/backend/
 k apply -f apps/votcha/frontend/
 ```
 
-## 5. Monitoring / Observability
+## 5. Monitoring / Metrics Collection
+### Step 5.1: Monitoring Dtack Deployment
+Deploy the platform monitoring components, including metrics collection, storage, and visualization service.
 ```bash
 k apply -f apps/votcha/monitoring/
+```
+
+### Step 5.2: Health Verification
+Verify that all monitoring components are running successfully before proceeding.
+```bash
+kubectl get pods -n votcha-dev
 ```
 
 ## 6. Traffic Ingress & Public Edge Routing
