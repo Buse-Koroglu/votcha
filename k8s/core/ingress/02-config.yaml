@@ -1,0 +1,6 @@
+# It allows you to manage Nginx’s global configurations (such as timeout durations, proxy settings, and log format) externally, without accessing the pod.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: nginx-ingress

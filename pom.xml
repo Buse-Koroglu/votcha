@@ -9,10 +9,10 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>votify-meet</artifactId>
+	<artifactId>votcha</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>votify-meet</name>
-	<description>Votify Meet</description>
+	<name>votcha</name>
+	<description>Votcha</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -100,13 +100,44 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Elastic data support-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+
         <!--Spring Boot Actuator-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+		<!--Spring Boot Micrometer-->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+
+		<!--Spring Data Redis-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
+        <!-- Mail Sender-->
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
+		<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator-test</artifactId>
             <scope>test</scope>

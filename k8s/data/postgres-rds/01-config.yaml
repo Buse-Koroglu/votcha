@@ -1,0 +1,29 @@
+# ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  labels:
+    app: votcha
+    component: postgres
+    tier: db
+  namespace: votcha-dev
+data:
+  PGPORT: "5432"
+
+
+---
+# Secret (Postgres)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  labels:
+    app: votcha
+    component: postgres
+    tier: db
+  namespace: votcha-dev
+data:
+  POSTGRES_USER: cG9zdGdyZXM= # Base64 encoded 'postgres'
+  POSTGRES_PASSWORD: dm90Y2hhX3BnMTMq # Base64 encoded 'votcha_pg13*'
+  POSTGRES_DB: dm90Y2hh # Base64 encoded 'votcha'

@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: votcha-dev
+  labels:
+    app: votcha
+    component: logging
+    tier: elk
+spec:
+  serviceName: "elasticsearch"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: votcha
+      component: logging
+      tier: elk
+  template:
+    metadata:
+      labels:
+        app: votcha
+        component: logging
+        tier: elk
+    spec:
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+      - name: cert-generator
+        image: elasticsearch:9.2.0
+        securityContext:
+          runAsUser: 0
+        command:
+        - bash
+        - -c
+        - |
+          if [ -f /usr/share/elasticsearch/config/certs/elastic/elastic.crt ]; then
+            echo "Certs exist."
+            exit 0
+          fi
+          bin/elasticsearch-certutil ca --silent --pem -out /tmp/ca.zip
+          unzip /tmp/ca.zip -d /usr/share/elasticsearch/config/certs
+          echo -ne "instances:\n  - name: elastic\n    dns:\n      - elasticsearch\n      - localhost\n    ip:\n      - 127.0.0.1\n  - name: kibana\n    dns:\n      - kibana\n      - localhost\n    ip:\n      - 127.0.0.1\n" > /tmp/instances.yml
+          bin/elasticsearch-certutil cert --silent --pem -out /tmp/certs.zip --in /tmp/instances.yml --ca-cert /usr/share/elasticsearch/config/certs/ca/ca.crt --ca-key /usr/share/elasticsearch/config/certs/ca/ca.key
+          unzip /tmp/certs.zip -d /usr/share/elasticsearch/config/certs
+          chown -R 1000:1000 /usr/share/elasticsearch/config/certs
+          find /usr/share/elasticsearch/config/certs -type d -exec chmod 750 {} \;
+          find /usr/share/elasticsearch/config/certs -type f -exec chmod 640 {} \;
+        volumeMounts:
+        - name: certs-volume
+          mountPath: /usr/share/elasticsearch/config/certs
+
+      containers:
+      - name: elasticsearch
+        image: elasticsearch:9.2.0
+        ports:
+        - containerPort: 9200
+          name: http
+        env:
+        # ConfigMap'ten gelenler
+        - name: cluster.name
+          valueFrom: { configMapKeyRef: { name: elk-config, key: CLUSTER_NAME } }
+        - name: xpack.license.self_generated.type
+          valueFrom: { configMapKeyRef: { name: elk-config, key: LICENSE } }
+        # Secret'tan gelenler
+        - name: ELASTIC_PASSWORD
+          valueFrom: { secretKeyRef: { name: elk-secret, key: ELASTIC_PASSWORD } }
+        # Sabit Elasticsearch Ayarları
+        - name: node.name
+          value: "elastic"
+        - name: discovery.type
+          value: "single-node"
+        - name: network.host
+          value: "0.0.0.0"
+        - name: bootstrap.memory_lock
+          value: "false"
+        - name: xpack.security.enabled
+          value: "true"
+        - name: xpack.security.http.ssl.enabled
+          value: "true"
+        - name: xpack.security.http.ssl.key
+          value: "certs/elastic/elastic.key"
+        - name: xpack.security.http.ssl.certificate
+          value: "certs/elastic/elastic.crt"
+        - name: xpack.security.http.ssl.certificate_authorities
+          value: "certs/ca/ca.crt"
+        - name: ES_JAVA_OPTS
+          value: "-Xms1g -Xmx1g"
+        - name: xpack.security.transport.ssl.enabled
+          value: "true"
+        - name: xpack.security.transport.ssl.key
+          value: "certs/elastic/elastic.key"
+        - name: xpack.security.transport.ssl.certificate
+          value: "certs/elastic/elastic.crt"
+        - name: xpack.security.transport.ssl.certificate_authorities
+          value: "certs/ca/ca.crt"
+        - name: xpack.security.transport.ssl.verification_mode
+          value: "certificate"
+        resources:
+          limits:
+            memory: "2Gi"
+          requests:
+            memory: "2Gi"
+        readinessProbe:
+          exec:
+            command:
+            - bash
+            - -c
+            - "curl -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'" 
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: certs-volume
+          mountPath: /usr/share/elasticsearch/config/certs
+        - name: elastic-data
+          mountPath: /usr/share/elasticsearch/data
+
+      volumes:
+      - name: certs-volume
+        emptyDir: {}
+
+  # K8s'in PV'yi bulup otomatik PVC yaratacağı sihirli kısım
+  volumeClaimTemplates:
+  - metadata:
+      name: elastic-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi

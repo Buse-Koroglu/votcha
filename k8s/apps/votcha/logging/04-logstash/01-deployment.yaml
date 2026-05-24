@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: votcha-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: votcha
+      component: logstash
+  template:
+    metadata:
+      labels:
+        app: votcha
+        component: logstash
+    spec:
+      containers:
+      - name: logstash
+        image: logstash:9.2.0
+        ports:
+        - containerPort: 5044
+        - containerPort: 5000
+        env:
+        - name: ELASTIC_USER
+          value: "elastic"
+        - name: ELASTIC_PASSWORD
+          valueFrom: { secretKeyRef: { name: elk-secret, key: ELASTIC_PASSWORD } }
+        - name: ELASTIC_HOSTS
+          value: "https://elasticsearch:9200"
+        - name: xpack.monitoring.enabled
+          value: "false"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /usr/share/logstash/pipeline/logstash.conf
+          subPath: logstash.conf
+        - name: certs-secret-volume
+          mountPath: /usr/share/logstash/config/certs
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: logstash-config
+      - name: certs-secret-volume
+        secret:
+          secretName: elk-certs

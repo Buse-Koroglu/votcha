@@ -3,22 +3,32 @@ services:
     extends:
       file: ./config/setup.yaml
       service: setup
+    networks:
+      - votcha_votcha_network
   elastic:
     extends:
       file: ./services/elastic.yaml
       service: elastic
+    networks:
+      - votcha_votcha_network
   kibana:
     extends:
       file: ./services/kibana.yaml
       service: kibana
+    networks:
+      - votcha_votcha_network
   logstash:
     extends:
       file: ./services/logstash.yaml
       service: logstash
+    networks:
+      - votcha_votcha_network
   filebeat:
     extends:
       file: ./services/filebeat.yaml
       service: filebeat
+    networks:
+      - votcha_votcha_network
 volumes:
   certs:
     driver: local
@@ -30,8 +40,7 @@ volumes:
     driver: local
 
 networks:
-  default:
-    name: elastic
-    external: false
+  votcha_votcha_network:
+    external: true
 
 

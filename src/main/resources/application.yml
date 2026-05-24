@@ -1,0 +1,105 @@
+spring:
+  application:
+    name: votcha
+  datasource:
+    url: jdbc:postgresql://localhost:5435/votcha # 5434
+    username: postgres
+    password: postgres #enes
+    driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      #host: redis
+      host: localhost
+      port: 6379
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        show_sql: false
+    open-in-view: false
+  elasticsearch:
+    uris: "localhost:9200"
+    username: "elastic"
+    password: "enes.13"
+    crt:
+      #path: ${CRT_PATH:"C:\Users\ASUS\Desktop\CloudProject\votcha\certs\ca.crt"}
+      path: ${CRT_PATH:/home/enes/Documents/votcha/certs/ca.crt}
+  main:
+    banner-mode: off # Don't show Spring logs
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    password: ${SMTP_PASSWORD:test123}
+    username: ${SMTP_USERNAME:test@gmail.com}
+    backend:
+      url: http://localhost:8090
+    frontend:
+      url: http://localhost:5173
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true # # throw error if the requestDtos have extra fields
+
+server:
+  port: 8090
+  forward-headers-strategy: native # Nginx forward proxy
+
+
+# 7 days, for refresh token
+jwt:
+  refresh-token:
+    expiration-in-seconds: 604800
+
+# You need to set this as true in production environment
+app:
+  security:
+    cookie:
+      secure: false
+
+
+# Actuator metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus"
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: backend-service
+
+
+
+# Remove the unnecessary logs (WARNINGS)
+logging:
+  level:
+    org:
+      springframework:
+        security:
+          config:
+            annotation:
+              authentication:
+                configuration:
+                  InitializeUserDetailsBeanManagerConfigurer: ERROR
+
+# Initial superadmin email and password , comes from .env
+initial:
+  admin:
+    email: ${SUPER_ADMIN_EMAIL:test@gmail.com}
+    password: ${SUPER_ADMIN_PASSWORD:test123}
+
+kind: Application

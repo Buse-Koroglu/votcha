@@ -1,42 +1,50 @@
 services:
+  redis:
+    extends:
+      service: redis
+      file: deploy/redis.yaml
+    networks:
+      - votcha_votcha_network
   app:
-    build: .
-    container_name: votify_meet
-    environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/votify_meet
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "${APP_PORT}:8090"
+    extends:
+      file: deploy/backend.yaml
+      service: app
+    networks:
+      - votcha_votcha_network
     depends_on:
-      db:
-        condition: service_healthy
+      - redis
+  frontend:
+    extends:
+      file: deploy/frontend.yaml
+      service: frontend
     networks:
-      - votify_meet_network
-    volumes:
-      - ./logs:/app/logs
+      - votcha_votcha_network
+    depends_on:
+      grafana:
+        condition: service_started
   db:
-    container_name: votify_meet_db
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - votify_meet_vol:/var/lib/postgresql/data
-    ports:
-      - "${DB_PORT}:5432"
+    extends:
+      file: deploy/db.yaml
+      service: db
     networks:
-      - votify_meet_network
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d votify_meet" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+      - votcha_votcha_network
+  prometheus:
+    extends:
+      file: monitoring/services/prometheus.yaml
+      service: prometheus
+    networks:
+      - votcha_votcha_network
+  grafana:
+    extends:
+      file: monitoring/services/grafana.yaml
+      service: grafana
+    networks:
+      - votcha_votcha_network
 networks:
-  votify_meet_network:
-    driver: bridge
+  votcha_votcha_network:
+    external: true
+
 volumes:
-  votify_meet_vol:
+  redis_vol:
+  votcha_vol:
+    driver: local

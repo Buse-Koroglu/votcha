@@ -1,0 +1,58 @@
+# Postgres Deployment with 1 Replicas
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-deployment
+  labels:
+    app: votcha
+    component: postgres
+    tier: db
+  namespace: votcha-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: votcha
+      component: postgres
+      tier: db
+  template:
+    metadata:
+      labels:
+        app: votcha
+        component: postgres
+        tier: db
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+          - containerPort: 5432
+        volumeMounts:
+          - name: postgres-storage
+            mountPath: "/var/lib/postgresql/data"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        envFrom:
+        - configMapRef:
+            name: postgres-config
+        - secretRef:
+            name: postgres-secret
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-claim
